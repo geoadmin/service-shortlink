@@ -1,13 +1,10 @@
-import time
 from urllib.parse import urlparse
-
-import boto3.exceptions as boto3_exc
 from flask import abort
 from boto3.dynamodb.conditions import Key
-
-from app.models.dynamo_db import get_dynamodb_table
+from app.helpers import make_api_url
 from app import app
 config = app.config
+
 
 def check_params(scheme, host, url):
     if url is None:
@@ -22,6 +19,18 @@ def check_params(scheme, host, url):
     if host not in config['allowed_hosts']:
         host_url = make_api_url(request) + '/shorten/'
     else:
-        host_url = ''.join((request.scheme, '://s.geo.admin.ch/'))
+        host_url = ''.join((scheme, '://s.geo.admin.ch/'))
 
-    return ''.join([scheme, host_url])
+    return host_url
+
+
+def check_and_get_url_short(table, url):
+
+    response = table.query(
+        IndexName="UrlIndex",
+        KeyConditionExpression=Key('url').eq(url),
+    )
+    try:
+        return response['Items'][0]['url_short']
+    except Exception:
+        return None

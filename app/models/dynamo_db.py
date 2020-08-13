@@ -18,7 +18,7 @@ class DynamodbConnection:
         return self.conn
 
 
-dynamodb_connection=DynamodbConnection()
+dynamodb_connection = DynamodbConnection()
 
 
 def get_dynamodb_table(table_name='shorturl', region='eu-west-1'):

@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 import boto3.exceptions as boto3_exc
 from flask import abort
 from boto3.dynamodb.conditions import Key
-
+from app.helpers.checks import check_and_get_url_short
 from app.models.dynamo_db import get_dynamodb_table
 from app import app
 config = app.config
@@ -53,15 +53,16 @@ def fetch_url(url_id):
     url_short = url_id
 
     if url_short == 'toolong':  # TODO: correct redirect
-        raise exc.HTTPFound(location='http://map.geo.admin.ch')
+        return 'http://map.geo.admin.ch'
 
     table_name = config['aws_table_name']
     aws_region = config['aws_region']
-
+    table = None
+    url = None
     try:
         table = get_dynamodb_table(table_name=table_name, region=aws_region)
     except Exception as e:
-        raise exc.HTTPInternalServerError('Error during connection %s' % e)
+        abort(500, f'Error during connection {str(e)}')
 
     try:
         response = table.query(
@@ -70,10 +71,10 @@ def fetch_url(url_id):
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
 
     except Exception as e:  # pragma: no cover
-        raise exc.HTTPInternalServerError('Unexpected internal server error: %s' % e)
+        abort(500, f'Unexpected internal server error: {str(e)}')
     if url is None:
-        raise exc.HTTPNotFound('This short url doesn\'t exist: s.geo.admin.ch/%s' % url_short)
-    raise exc.HTTPMovedPermanently(location=url)
+        abort(404, f'This short url doesn\'t exist: s.geo.admin.ch/{str(url_id)}')
+    return url
 
 
 def add_item(url):
@@ -87,19 +88,10 @@ def add_item(url):
     :return: the shortened url id
     """
     table = get_dynamodb_table(config['aws_table_name'], config['aws_region'])
-    shortened_url = _check_and_get_url_short(table, url)
+    shortened_url = check_and_get_url_short(table, url)
     if shortened_url is None:
         shortened_url = create_url(table, url)
     return shortened_url
 
 
-def _check_and_get_url_short(table, url):
 
-    response = table.query(
-        IndexName="UrlIndex",
-        KeyConditionExpression=Key('url').eq(url),
-    )
-    try:
-        return response['Items'][0]['url_short']
-    except Exception:
-        return None
