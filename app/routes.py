@@ -3,7 +3,6 @@ from app import app
 from flask import request, Response, redirect, abort
 from app.helpers import  add_item, check_params, fetch_url, create_response
 from service_config import Config
-app.route = prefix_route(app.route, '/v4/shortlink')
 
 
 @app.route('/checker', ['GET'])
