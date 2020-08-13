@@ -2,8 +2,7 @@ import time
 from urllib.parse import urlparse
 
 import boto3.exceptions as boto3_exc
-import werkzeug.exceptions as exc
-
+from flask import abort
 from boto3.dynamodb.conditions import Key
 
 from app.models.dynamo_db import get_dynamodb_table
@@ -11,17 +10,8 @@ from app import app
 config = app.config
 
 
-def check_params(scheme, host, url):
-    if url is None:
-        raise exc.BadRequest('url parameter missing from request')
-    hostname = urlparse(url).hostname
-    if hostname is None:
-        raise exc.BadRequest('Could not determine the query hostname')
-    domain = ".".join(hostname.split(".")[-2:])
-    if domain not in config['allowed_domains'] and hostname not in config['allowed_hosts']:
-        raise exc.BadRequest(f'Shortener can only be used for {config["allowed_domains"]} domains or '
-                             f'{config["allowed_hosts"]} hosts')
-
+def make_api_url(request):
+    pass
 
 
 def create_url(table, url):
@@ -36,6 +26,10 @@ def create_url(table, url):
     """
     try:
         # we create a magic number based on epoch for our shortened_url id
+        # urls have a maximum size of 2046 character due to a dynamodb limitation
+        if len(url) > 2046:
+            return "toolong", \
+                   f"The url given as parameter was too long. (limit is 2046, {len(url)} given)"
         t = int(time.time() * 1000) - 1000000000000
         shortened_url = '%x' % t
         now = time.localtime()
@@ -47,18 +41,18 @@ def create_url(table, url):
                 'epoch': time.strftime('%s', now)
             }
         )
-        return shortened_url
+        return shortened_url, None
     # Those are internal server error: error code 500
     except boto3_exc.Boto3Error as e:
-        raise exc.InternalServerError('Write units exceeded: %s' % e)
+        abort(500, f"Write units exceeded: {str(e)}")
     except Exception as e:
-        raise exc.InternalServerError('Error during put item %s' % e)
+        abort(500, f"Error during put item: {str(e)}")
 
 
 def fetch_url(url_id):
     url_short = url_id
 
-    if url_short == 'toolong': # TODO: correct redirect
+    if url_short == 'toolong':  # TODO: correct redirect
         raise exc.HTTPFound(location='http://map.geo.admin.ch')
 
     table_name = config['aws_table_name']
@@ -101,7 +95,7 @@ def add_item(url):
 
 def _check_and_get_url_short(table, url):
 
-    response  = table.query(
+    response = table.query(
         IndexName="UrlIndex",
         KeyConditionExpression=Key('url').eq(url),
     )
