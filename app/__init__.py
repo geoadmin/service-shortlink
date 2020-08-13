@@ -1,5 +1,5 @@
-from flask import Flask
 import service_config
+from flask import Flask
 from app.middleware import ReverseProxied
 
 # Standard Flask application initialisation
@@ -17,7 +17,7 @@ def main():
 
 if __name__ == '__main__':
     """
-    Entrypoint for the application. At the moment, we do nothing specific, but there might be preparatory steps in the 
-    future
+    Entrypoint for the application. At the moment, we do nothing specific, 
+    but there might be preparatory steps in the future
     """
     main()
