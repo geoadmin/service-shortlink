@@ -4,6 +4,7 @@ SHELL = /bin/bash
 
 CURRENT_DIR := $(shell pwd)
 INSTALL_DIR := $(CURRENT_DIR)/.venv
+HTTP_PORT ?= 5000
 PYTHON_FILES := $(shell find ./* -type f -name "*.py" -print)
 
 #FIXME: put this variable in config file
