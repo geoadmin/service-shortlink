@@ -52,7 +52,8 @@ help:
 	@echo -e " \033[1mLOCAL SERVER TARGETS\033[0m "
 	@echo "- serve			Run the project using the flask debug server"
 	@echo "- gunicornserve		Run the project using the gunicorn WSGI server"
-	@echo "- dockerrun		Run the project using the gunicorn WSGI server inside a container. Env variable HTTP_PORT should be set"
+	@echo "- dockerbuild   Build the project localy using the gunicorn WSGI server inside a container"
+	@echo "- dockerrun		Run the project using the gunicorn WSGI server inside a container. (Exposed_port: $(HTTP_PORT)"
 	@echo "- shutdown		Stop the aforementioned container"
 	@echo -e " \033[1mCLEANING TARGETS\033[0m "
 	@echo "- clean			Clean genereated files"
@@ -95,14 +96,20 @@ gunicornserve: .venv/build.timestamp
 
 
 # Docker related functions.
+.PHONY: dockerbuild
+dockerbuild:
+    docker build -t swisstopo/service-shortlink:local
+
+export-http-port:
+    @export HTTP_PORT=$(HTTP_PORT)
 
 .PHONY: dockerrun
-dockerrun:
+dockerrun: export-http-port
 	docker-compose up -d;
 	sleep 10
 
 .PHONY: shutdown
-shutdown:
+shutdown: export-http-port
 	docker-compose down
 
 # Cleaning functions. clean_venv will only remove the virtual environment, while clean will also remove the local python installation.
