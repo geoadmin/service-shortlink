@@ -1,6 +1,4 @@
 import time
-from urllib.parse import urlparse
-
 import boto3.exceptions as boto3_exc
 from flask import abort
 from boto3.dynamodb.conditions import Key
@@ -29,7 +27,7 @@ def create_url(table, url):
         # urls have a maximum size of 2046 character due to a dynamodb limitation
         if len(url) > 2046:
             return "toolong", \
-                   f"The url given as parameter was too long. (limit is 2046, {len(url)} given)"
+                   f"The url given as parameter was too long. (limit is 2046 characters, {len(url)} given)"
         t = int(time.time() * 1000) - 1000000000000
         shortened_url = '%x' % t
         now = time.localtime()
