@@ -3,6 +3,7 @@ import boto3.exceptions as boto3_exc
 from flask import abort
 from boto3.dynamodb.conditions import Key
 from app.helpers.checks import check_and_get_url_short
+from app.helpers.response_generation import make_error_msg
 from app.models.dynamo_db import get_dynamodb_table
 from app import app
 config = app.config
@@ -15,7 +16,6 @@ def make_api_url(scheme, host, base_path):
     """
     h = host + base_path if 'localhost' not in host else host
     return ''.join((scheme, '://', h))
-
 
 
 def create_url(table, url):
@@ -48,9 +48,9 @@ def create_url(table, url):
         return shortened_url, None
     # Those are internal server error: error code 500
     except boto3_exc.Boto3Error as e:
-        abort(500, f"Write units exceeded: {str(e)}")
+        abort(make_error_msg(500, f"Write units exceeded: {str(e)}"))
     except Exception as e:
-        abort(500, f"Error during put item: {str(e)}")
+        abort(make_error_msg(500, f"Error during put item: {str(e)}"))
 
 
 def fetch_url(url_id):
@@ -66,7 +66,7 @@ def fetch_url(url_id):
     try:
         table = get_dynamodb_table(table_name=table_name, region=aws_region)
     except Exception as e:
-        abort(500, f'Error during connection {str(e)}')
+        abort(make_error_msg(500, f'Error during connection {str(e)}'))
 
     try:
         response = table.query(
@@ -75,9 +75,9 @@ def fetch_url(url_id):
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
 
     except Exception as e:  # pragma: no cover
-        abort(500, f'Unexpected internal server error: {str(e)}')
+        abort(make_error_msg(500, f'Unexpected internal server error: {str(e)}'))
     if url is None:
-        abort(404, f'This short url doesn\'t exist: s.geo.admin.ch/{str(url_id)}')
+        abort(make_error_msg(404, f'This short url doesn\'t exist: s.geo.admin.ch/{str(url_id)}'))
     return url
 
 

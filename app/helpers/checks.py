@@ -2,20 +2,21 @@ from urllib.parse import urlparse
 from flask import abort
 from boto3.dynamodb.conditions import Key
 from app.helpers import make_api_url
+from app.helpers.response_generation import make_error_msg
 from app import app
 config = app.config
 
 
 def check_params(scheme, host, url, base_path):
     if url is None:
-        abort(400, 'url parameter missing from request')
+        abort(make_error_msg(400, 'url parameter missing from request'))
     hostname = urlparse(url).hostname
     if hostname is None:
-        abort(400, 'Could not determine the query hostname')
+        abort(make_error_msg(400, 'Could not determine the query hostname'))
     domain = ".".join(hostname.split(".")[-2:])
     if domain not in config['allowed_domains'] and hostname not in config['allowed_hosts']:
-        abort(400, f'Service shortlink can only be used for {config["allowed_domains"]} domains or '
-                   f'{config["allowed_hosts"]} hosts')
+        abort(make_error_msg(400, f'Service shortlink can only be used for {config["allowed_domains"]} domains or '
+                                  f'{config["allowed_hosts"]} hosts'))
     if host not in config['allowed_hosts']:
         host_url = make_api_url(scheme, host, base_path) + '/redirect/'
     else:

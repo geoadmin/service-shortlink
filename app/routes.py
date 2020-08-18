@@ -3,7 +3,7 @@ from app import app
 from flask import request, Response, redirect, abort
 from app.helpers import add_item, fetch_url
 from app.helpers.checks import check_params
-from app.helpers.controllers import create_response
+from app.helpers.response_generation import create_response
 from service_config import Config
 
 
