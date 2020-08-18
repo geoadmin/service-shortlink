@@ -8,8 +8,14 @@ from app import app
 config = app.config
 
 
-def make_api_url(request):
-    pass
+def make_api_url(scheme, host, base_path):
+    """
+    This function's goal is to ensure we can try the service in another environment than the production environment
+    It takes the request base path, the scheme and the host as a parameter
+    """
+    h = host + base_path if 'localhost' not in host else host
+    return ''.join((scheme, '://', h))
+
 
 
 def create_url(table, url):

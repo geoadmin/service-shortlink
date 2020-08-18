@@ -6,7 +6,7 @@ from app import app
 config = app.config
 
 
-def check_params(scheme, host, url):
+def check_params(scheme, host, url, base_path):
     if url is None:
         abort(400, 'url parameter missing from request')
     hostname = urlparse(url).hostname
@@ -17,7 +17,7 @@ def check_params(scheme, host, url):
         abort(400, f'Service shortlink can only be used for {config["allowed_domains"]} domains or '
                    f'{config["allowed_hosts"]} hosts')
     if host not in config['allowed_hosts']:
-        host_url = make_api_url(request) + '/shorten/'
+        host_url = make_api_url(scheme, host, base_path) + '/redirect/'
     else:
         host_url = ''.join((scheme, '://s.geo.admin.ch/'))
 

@@ -39,7 +39,8 @@ def create_shortlink():
     url = r.args.get('url', None)
     scheme = r.scheme
     domain = r.url_root.replace(scheme, '')  # this will return the root url without the scheme
-    base_response_url = check_params(scheme, domain, url)
+    base_path = r.script_root
+    base_response_url = check_params(scheme, domain, url, base_path)
     response = create_response(base_response_url, add_item(url))
     if r.headers.get('Origin') is not None and \
             re.match(Config.allowed_domains_pattern, request.headers['Origin']):
