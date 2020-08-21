@@ -1,5 +1,7 @@
 import boto3
+import boto3.exceptions as boto3_exc
 from flask import abort
+
 from app.helpers.response_generation import make_error_msg
 
 
@@ -13,7 +15,7 @@ class DynamodbConnection:
         if self.conn is None:
             try:
                 self.conn = boto3.resource('dynamodb', region_name=self.region)
-            except Exception as e:
+            except boto3_exc.Boto3Error as e:
                 abort(make_error_msg(500, f'DynamoDB: Error during connection init {e}'))
         return self.conn
 
@@ -26,7 +28,6 @@ def get_dynamodb_table(table_name='shorturl', region='eu-west-1'):
     dyn.region = region
     conn = dyn.get()
     try:
-        table = conn.Table(table_name)
-    except Exception as e:  # pragma: no cover
+        return conn.Table(table_name)
+    except boto3_exc.Boto3Error as e:
         abort(make_error_msg(500, f'DynamoDB: Error during connection to the table {table_name}\n{e}'))
-    return table

@@ -1,9 +1,11 @@
 from urllib.parse import urlparse
-from flask import abort
+
 from boto3.dynamodb.conditions import Key
-from app.helpers import make_api_url
+from flask import abort
+
 from app.helpers.response_generation import make_error_msg
 from app import app
+
 config = app.config
 
 
@@ -18,7 +20,10 @@ def check_params(scheme, host, url, base_path):
         abort(make_error_msg(400, f'Service shortlink can only be used for {config["allowed_domains"]} domains or '
                                   f'{config["allowed_hosts"]} hosts'))
     if host not in config['allowed_hosts']:
-        host_url = make_api_url(scheme, host, base_path) + '/redirect/'
+        """
+        This allows for compatibility with dev hosts or local builds for testing purpose.
+        """
+        host_url = ''.join((scheme, '://', host, base_path if 'localhost' not in host else '', '/redirect/'))
     else:
         host_url = ''.join((scheme, '://s.geo.admin.ch/'))
 
@@ -33,5 +38,5 @@ def check_and_get_url_short(table, url):
     )
     try:
         return response['Items'][0]['url_short']
-    except Exception:
+    except IndexError:
         return None

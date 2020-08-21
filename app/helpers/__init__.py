@@ -1,21 +1,14 @@
 import time
+
 import boto3.exceptions as boto3_exc
-from flask import abort
 from boto3.dynamodb.conditions import Key
+from flask import abort
+
 from app.helpers.checks import check_and_get_url_short
 from app.helpers.response_generation import make_error_msg
 from app.models.dynamo_db import get_dynamodb_table
 from app import app
 config = app.config
-
-
-def make_api_url(scheme, host, base_path):
-    """
-    This function's goal is to ensure we can try the service in another environment than the production environment
-    It takes the request base path, the scheme and the host as a parameter
-    """
-    h = host + base_path if 'localhost' not in host else host
-    return ''.join((scheme, '://', h))
 
 
 def create_url(table, url):
@@ -49,8 +42,6 @@ def create_url(table, url):
     # Those are internal server error: error code 500
     except boto3_exc.Boto3Error as e:
         abort(make_error_msg(500, f"Write units exceeded: {str(e)}"))
-    except Exception as e:
-        abort(make_error_msg(500, f"Error during put item: {str(e)}"))
 
 
 def fetch_url(url_id):
@@ -61,12 +52,8 @@ def fetch_url(url_id):
 
     table_name = config['aws_table_name']
     aws_region = config['aws_region']
-    table = None
     url = None
-    try:
-        table = get_dynamodb_table(table_name=table_name, region=aws_region)
-    except Exception as e:
-        abort(make_error_msg(500, f'Error during connection {str(e)}'))
+    table = get_dynamodb_table(table_name=table_name, region=aws_region)
 
     try:
         response = table.query(
@@ -74,7 +61,7 @@ def fetch_url(url_id):
         )
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
 
-    except Exception as e:  # pragma: no cover
+    except boto3_exc.Boto3Error as e:  # pragma: no cover
         abort(make_error_msg(500, f'Unexpected internal server error: {str(e)}'))
     if url is None:
         abort(make_error_msg(404, f'This short url doesn\'t exist: s.geo.admin.ch/{str(url_id)}'))

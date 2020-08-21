@@ -1,7 +1,6 @@
-import service_config
 from flask import Flask
 from app.middleware import ReverseProxied
-
+import service_config
 # Standard Flask application initialisation
 
 app = Flask(__name__)
