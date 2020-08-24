@@ -47,9 +47,6 @@ def create_url(table, url):
 def fetch_url(url_id):
     url_short = url_id
 
-    if url_short == 'toolong':  # TODO: correct redirect
-        return 'http://map.geo.admin.ch'
-
     table_name = config['aws_table_name']
     aws_region = config['aws_region']
     url = None

@@ -49,7 +49,7 @@ def create_shortlink():
     logger.debug(f"params received are : url --> {url}, scheme --> {scheme}, "
                  f"domain --> {domain}, base_path --> {base_path}")
     base_response_url = check_params(scheme, domain, url, base_path)
-    response = create_response(base_response_url, add_item(url))
+    response = {"shorturl": base_response_url + add_item(url)}
     response_headers['Access-Control-Allow-Origin'] = r.headers['origin']
     response_headers['Access-Control-Allow-Methods'] = 'GET, OPTION'
     response_headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization,' \
