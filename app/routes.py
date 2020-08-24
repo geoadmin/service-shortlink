@@ -23,8 +23,7 @@ def checker():
     return 'OK', 200
 
 
-@app.route('/shorten', ['GET'])
-@app.route('/shorten.json', ['GET'])
+@app.route('/shorten', ['POST'])
 def create_shortlink():
     """
     The create_shortlink route's goal is to take an url and create a shortlink to it.
@@ -41,7 +40,7 @@ def create_shortlink():
         logger.critical("Shortlink Error: Invalid Origin")
         abort(make_error_msg(403, "Not Allowed"))
     response_headers = {'Content-Type': 'application/json; charset=utf-8'}
-    url = r.args.get('url', None)
+    url = r.json.get('url', None)
     scheme = r.scheme
     domain = r.url_root.replace(scheme, '')  # this will return the root url without the scheme
     base_path = r.script_root
