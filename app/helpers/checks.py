@@ -10,6 +10,31 @@ config = app.config
 
 
 def check_params(scheme, host, url, base_path):
+    """
+    * Quick summary of the function *
+
+    In the process to create a shortened url, this is the first step, checking all parameters. If
+    they all fall within expectation, this function return the 'base url' that will lead to the
+    redirection link. On production, that base_url would be http(s)://s.geo.admin.ch/.
+
+    * Abortions originating in this function *
+
+    Abort with a 400 status code if there is no url, given to shorten
+    Abort with a 400 status code if the application hostname can't be determined
+    Abort with a 400 status code if the application domain is not one of the allowed ones.
+
+    * Abortions originating in functions called from this function *
+
+    None
+
+    * parameters and return values *
+
+    :param scheme: the scheme (http | https) used to make the query
+    :param host: the hostname of this service
+    :param url: the url given to be shortened
+    :param base_path: the reverse proxy paths in front of this service
+    :return: the base url to reach the redirected url.
+    """
     if url is None:
         abort(make_error_msg(400, 'url parameter missing from request'))
     hostname = urlparse(url).hostname
@@ -17,21 +42,43 @@ def check_params(scheme, host, url, base_path):
         abort(make_error_msg(400, 'Could not determine the query hostname'))
     domain = ".".join(hostname.split(".")[-2:])
     if domain not in config['allowed_domains'] and hostname not in config['allowed_hosts']:
-        abort(make_error_msg(400, f'Service shortlink can only be used for {config["allowed_domains"]} domains or '
+        abort(make_error_msg(400, f'Service shortlink can only be used for '
+                                  f'{config["allowed_domains"]} domains or '
                                   f'{config["allowed_hosts"]} hosts'))
     if host not in config['allowed_hosts']:
         """
         This allows for compatibility with dev hosts or local builds for testing purpose.
         """
-        host_url = ''.join((scheme, '://', host, base_path if 'localhost' not in host else '', '/redirect/'))
+        base_url = ''.join((scheme, '://', host, base_path if 'localhost' not in host else '',
+                            '/redirect/'))
     else:
-        host_url = ''.join((scheme, '://s.geo.admin.ch/'))
+        base_url = ''.join((scheme, '://s.geo.admin.ch/'))
 
-    return host_url
+    return base_url
 
 
 def check_and_get_url_short(table, url):
+    """
+    * Quick summary of the function *
 
+    This tries to fetch the url_id corresponding to the given url in DynamoDB. If the url has
+    already been shortened in the past, this will return the shortened url id. Otherwise, it will
+    return None
+
+    * Abortions originating in this function *
+
+    None
+
+    * Abortions originating in functions called from this function *
+
+    None
+
+    * Parameters and return values *
+
+    :param table: the dynamodb table on which we execute our query
+    :param url: the url we try to compare.
+    :return: either a shortened url id, or None
+    """
     response = table.query(
         IndexName="UrlIndex",
         KeyConditionExpression=Key('url').eq(url),
