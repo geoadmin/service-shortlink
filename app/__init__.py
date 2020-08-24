@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.wsgi_app = ReverseProxied(app.wsgi_app, script_name='/')
 app.config.from_object(service_config.Config)
 
-from app import routes
+from app import routes  # pylint: disable=wrong-import-position
 
 
 def main():
