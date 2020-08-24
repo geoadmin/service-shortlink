@@ -38,8 +38,7 @@ def create_shortlink():
     r = request
     if r.headers.get('Origin') is None or not \
             re.match(Config.allowed_domains_pattern, request.headers['Origin']):
-        logger.error("Shortlink Error: Invalid Origin")
-        # TODO : log here to catch everyone who wants to use the service without "being allowed"
+        logger.critical("Shortlink Error: Invalid Origin")
         abort(make_error_msg(403, "Not Allowed"))
     response_headers = {'Content-Type': 'application/json; charset=utf-8'}
     url = r.args.get('url', None)

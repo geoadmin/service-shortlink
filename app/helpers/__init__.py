@@ -1,4 +1,5 @@
 import time
+import logging
 
 import boto3.exceptions as boto3_exc
 from boto3.dynamodb.conditions import Key
@@ -9,6 +10,7 @@ from app.helpers.response_generation import make_error_msg
 from app.models.dynamo_db import get_dynamodb_table
 from app import app
 config = app.config
+logger = logging.getLogger(__name__)
 
 
 def create_url(table, url):
@@ -21,12 +23,15 @@ def create_url(table, url):
     :param url: the url we want to shorten
     :return: the shortened url id
     """
+    logger.info("Entry in create_url function")
+    logger.debug(f"Parameters for the function : table --> {table.__repr__}, url --> {url}")
     try:
         # we create a magic number based on epoch for our shortened_url id
         # urls have a maximum size of 2046 character due to a dynamodb limitation
         if len(url) > 2046:
-            return "toolong", \
-                   f"The url given as parameter was too long. (limit is 2046 characters, {len(url)} given)"
+            logger.error(f"Url({url}) given as parameter exceeds characters limit.")
+            abort(make_error_msg(400, f"The url given as parameter was too long. (limit is 2046 "
+                                      f"characters, {len(url)} given)"))
         t = int(time.time() * 1000) - 1000000000000
         shortened_url = '%x' % t
         now = time.localtime()
@@ -38,9 +43,11 @@ def create_url(table, url):
                 'epoch': time.strftime('%s', now)
             }
         )
-        return shortened_url, None
+        logger.info(f"Exit create_url function with shortened url --> {shortened_url}")
+        return shortened_url
     # Those are internal server error: error code 500
     except boto3_exc.Boto3Error as e:
+        logger.error(f"Internal error while writing in dynamodb. Error message is {str(e)}")
         abort(make_error_msg(500, f"Write units exceeded: {str(e)}"))
 
 
