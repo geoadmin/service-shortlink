@@ -28,12 +28,24 @@ base_response_headers = {
 
 @app.route('/checker', ['GET'])
 def checker():
+    """
+    * Quick summary of the function *
+    * Abortions originating in this function *
+    * Abortions originating in functions called from this function *
+    * Parameters and return values *
+    """
     logger.info(f"Checker route entered at {time.time()}")
     return make_response(jsonify({'success': True, 'message': 'OK'}))
 
 
 @app.route('/shorten', ['POST'])
 def create_shortlink():
+    """
+    * Quick summary of the function *
+    * Abortions originating in this function *
+    * Abortions originating in functions called from this function *
+    * Parameters and return values *
+    """
     """
     The create_shortlink route's goal is to take an url and create a shortlink to it.
     The only parameter we should receive is the url to be shortened.
@@ -71,6 +83,12 @@ def create_shortlink():
 
 @app.route('/redirect/<shortened_url_id>', ['GET'])
 def redirect_shortlink(url_id):
+    """
+    * Quick summary of the function *
+    * Abortions originating in this function *
+    * Abortions originating in functions called from this function *
+    * Parameters and return values *
+    """
     logger.info(f"Entry in redirection at {time.time()} with url_id {url_id}")
     url = fetch_url(url_id)
     logger.info(f"redirecting to the following url : {url}")
@@ -80,7 +98,10 @@ def redirect_shortlink(url_id):
 @app.route('/<shortened_url_id>', ['GET'])
 def fetch_full_url_from_shortlink(url_id):
     """
-    This is mostly a debug route, meant to return a
+    * Quick summary of the function *
+    * Abortions originating in this function *
+    * Abortions originating in functions called from this function *
+    * Parameters and return values *
     """
     logger.info(f"Entry in url fetch at {time.time()} with url_id {url_id}")
     url = fetch_url(url_id)
