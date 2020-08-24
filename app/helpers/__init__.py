@@ -15,9 +15,23 @@ logger = logging.getLogger(__name__)
 
 def create_url(table, url):
     """
-    This function creates an id which will act as the shortened url and returns it
+    * Quick summary of the function *
+
+    This function creates an id which will act as the shortened url, store it in
+    DynamoDB and returns it
+
+    * abortions originating in this function *
+
+    abort with a 400 status code if the url given as parameter exceeds 2046 characters (DynamoDB
+    limitation)
+    abort with a 500 status code on a writing error in DynamoDB
+
+    * abortions originating in functions called from this function *
+
+    None
 
     raise Exceptions when there is an issue during the dynamoo db table write
+    * parameters and expected output *
 
     :param table: the aws table on which we will write
     :param url: the url we want to shorten
@@ -52,6 +66,25 @@ def create_url(table, url):
 
 
 def fetch_url(url_id):
+    """
+    * Quick summary of the function *
+
+    We try to look for the url_id in the dynamodb table to find the corresponding full url
+
+    * abortions originating in this function *
+
+    abort with a 500 status code on a read error
+    abort with a 404 status code if the url_id is not an index for a shortened url
+
+    * abortions originating in functions called from this function *
+
+    abort with 500 error from get_dynamodb_table
+
+    * parameters and expected output *
+
+    :param url_id: String, a shortened url to be compared against indexes in DynamoDB
+    :return url: the full url corresponding to the url_id in DynamoDB
+    """
     url_short = url_id
 
     table_name = config['aws_table_name']
@@ -74,10 +107,21 @@ def fetch_url(url_id):
 
 def add_item(url):
     """
-    This function set a connection to a table, checks if the shortened url exists, creates it if that is not the case
-    and returns the shortened url
+    * Quick summary of the function *
 
-    Each method called might raise exceptions, but this is not managed here.
+    This function set a connection to a table, checks if the shortened url exists, creates it if
+    that is not the case and returns the shortened url
+
+    * abortions originating in this function *
+
+    None
+
+    * abortions originating in functions called from this function *
+
+    Abort with a 400 status code from create_url
+    Abort with a 500 status code from get_dynamodb_table or create_url
+
+    * parameters and expected output *
 
     :param url: the url we want to shorten
     :return: the shortened url id
