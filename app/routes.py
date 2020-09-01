@@ -11,7 +11,7 @@ from flask import redirect
 
 from app import app
 from app.helpers import add_item
-from app.helpers import  fetch_url
+from app.helpers import fetch_url
 from app.helpers.checks import check_params
 from app.helpers.response_generation import make_error_msg
 from service_config import Config

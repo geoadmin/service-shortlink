@@ -30,7 +30,7 @@ def create_url(table, url):
 
     None
 
-    raise Exceptions when there is an issue during the dynamoo db table write
+    raise Exceptions when there is an issue during the dynamo db table write
     * parameters and expected output *
 
     :param table: the aws table on which we will write
