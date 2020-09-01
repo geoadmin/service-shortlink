@@ -128,7 +128,7 @@ def redirect_shortlink(url_id):
     logger.info(f"Entry in redirection at {time.time()} with url_id {url_id}")
     url = fetch_url(url_id)
     logger.info(f"redirecting to the following url : {url}")
-    return redirect(url, code='302')
+    return redirect(url)
 
 
 @app.route('/<shortened_url_id>', ['GET'])

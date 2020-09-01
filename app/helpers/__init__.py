@@ -1,6 +1,6 @@
 import time
 import logging
-
+import uuid
 import boto3.exceptions as boto3_exc
 from boto3.dynamodb.conditions import Key
 from flask import abort
@@ -17,8 +17,8 @@ def create_url(table, url):
     """
     * Quick summary of the function *
 
-    This function creates an id which will act as the shortened url, store it in
-    DynamoDB and returns it
+    This function creates an id using the uuid library which will act as the shortened url,
+    store it in DynamoDB and returns it
 
     * abortions originating in this function *
 
@@ -46,8 +46,7 @@ def create_url(table, url):
             logger.error(f"Url({url}) given as parameter exceeds characters limit.")
             abort(make_error_msg(400, f"The url given as parameter was too long. (limit is 2046 "
                                       f"characters, {len(url)} given)"))
-        t = int(time.time() * 1000) - 1000000000000
-        shortened_url = '%x' % t
+        shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
         now = time.localtime()
         table.put_item(
             Item={

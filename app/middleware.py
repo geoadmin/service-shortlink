@@ -1,7 +1,7 @@
-class ReverseProxied(object):
+class ReverseProxies(object):
     """
     Reverse proxies can cause some problems within applications, as they change routes, redirect
-    traffic, and applications might have errors because of that. This piece of middlewar make sure
+    traffic, and applications might have errors because of that. This piece of middleware make sure
     everything runs smoothly.
     """
 
@@ -17,7 +17,7 @@ class ReverseProxied(object):
         This function modifies the environment received by the WSGI, mostly making sure we serve the
         right routes and that the application answers as if it were the initial host (for example,
         an error should say that the site at
-        reverse-proxied.admin.ch/generic_name/generate encountered a problem, not that it was at
+        reverse-proxies.admin.ch/generic_name/generate encountered a problem, not that it was at
         internal.server/generate
 
         :param environ: the WSGI environment
@@ -36,7 +36,7 @@ class ReverseProxied(object):
         (namely: that the query was hitting /generic_name/generate).
         """
         # The syntax here means : try to get HTTP_X_SCRIPT_NAME, or get me an empty string, and the
-        # command or, in the context of a string, returns the first "truthy" value
+        # command or, in the context of a string, returns the first "true" value
         script_name = environ.get('HTTP_X_SCRIPT_NAME', '') or self.script_name
         if script_name:
             environ['SCRIPT_NAME'] = script_name
