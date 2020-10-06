@@ -14,6 +14,7 @@ from app.helpers import add_item
 from app.helpers import fetch_url
 from app.helpers.checks import check_params
 from app.helpers.response_generation import make_error_msg
+from app.models.dynamo_db import get_dynamodb_table
 from service_config import Config
 
 logger = logging.getLogger(__name__)
@@ -91,8 +92,9 @@ def create_shortlink():
     logger.debug(f"params received are : url --> {url}, scheme --> {scheme}, "
                  f"domain --> {domain}, base_path --> {base_path}")
     base_response_url = check_params(scheme, domain, url, base_path)
+    table = get_dynamodb_table()
     response = make_response(jsonify({
-        "shorturl": ''.join(base_response_url + add_item(url)),
+        "shorturl": ''.join(base_response_url + add_item(table, url)),
         'success': True
     }))
     response_headers['Access-Control-Allow-Origin'] = r.headers['origin']
@@ -126,7 +128,8 @@ def redirect_shortlink(url_id):
     :return: a redirection to the full url
     """
     logger.info(f"Entry in redirection at {time.time()} with url_id {url_id}")
-    url = fetch_url(url_id)
+    table = get_dynamodb_table()
+    url = fetch_url(table, url_id)
     logger.info(f"redirecting to the following url : {url}")
     return redirect(url)
 
@@ -154,7 +157,8 @@ def fetch_full_url_from_shortlink(url_id):
     :return: a json with the full url
     """
     logger.info(f"Entry in url fetch at {time.time()} with url_id {url_id}")
-    url = fetch_url(url_id)
+    table = get_dynamodb_table()
+    url = fetch_url(table, url_id)
     logger.info(f"fetched the following url : {url}")
     response = make_response(jsonify({'shorturl': url_id, 'full_url': url, 'success': True}))
     response.headers.set(base_response_headers)

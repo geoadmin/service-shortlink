@@ -1,6 +1,9 @@
 import time
 import logging
+import logging.config
+import os
 import uuid
+import yaml
 import boto3.exceptions as boto3_exc
 from boto3.dynamodb.conditions import Key
 from flask import abort
@@ -64,7 +67,7 @@ def create_url(table, url):
         abort(make_error_msg(500, f"Write units exceeded: {str(e)}"))
 
 
-def fetch_url(url_id):
+def fetch_url(table, url_id):
     """
     * Quick summary of the function *
 
@@ -81,18 +84,17 @@ def fetch_url(url_id):
 
     * parameters and expected output *
 
+    :param table: DynamoDb Table object
     :param url_id: String, a shortened url to be compared against indexes in DynamoDB
     :return url: the full url corresponding to the url_id in DynamoDB
     """
     url_short = url_id
 
-    table_name = config['aws_table_name']
-    aws_region = config['aws_region']
     url = None
-    table = get_dynamodb_table(table_name=table_name, region=aws_region)
 
     try:
         response = table.query(
+            IndexName='shortlinkID',
             KeyConditionExpression=Key('url_short').eq(url_short)
         )
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
@@ -104,7 +106,7 @@ def fetch_url(url_id):
     return url
 
 
-def add_item(url):
+def add_item(table, url):
     """
     * Quick summary of the function *
 
@@ -122,14 +124,26 @@ def add_item(url):
 
     * parameters and expected output *
 
+    :param table: DynamoDb Table object
     :param url: the url we want to shorten
     :return: the shortened url id
     """
-    table = get_dynamodb_table(config['aws_table_name'], config['aws_region'])
     shortened_url = check_and_get_url_short(table, url)
     if shortened_url is None:
         shortened_url = create_url(table, url)
     return shortened_url
 
 
+def get_logging_cfg():
+    cfg_file = os.getenv('LOGGING_CFG', 'logging-cfg-local.yml')
 
+    with open(cfg_file, 'rt') as fd:
+        cfg = yaml.safe_load(fd.read())
+        fd.close()
+        logger.debug('Load logging configuration from file %s', cfg_file)
+        return cfg
+
+
+def init_logging():
+    cfg = get_logging_cfg()
+    logging.config.dictConfig(cfg)

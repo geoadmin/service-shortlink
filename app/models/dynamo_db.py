@@ -1,13 +1,14 @@
 import boto3
 import boto3.exceptions as boto3_exc
 from flask import abort
-
+from app import app
 from app.helpers.response_generation import make_error_msg
+config = app.config
 
 
 class DynamodbConnection:
     # We use a singleton approach, as we do not need more than that.
-    def __init__(self, region='eu-west-1'):
+    def __init__(self, region='eu-central-1'):
         self.conn = None
         self.region = region
 
@@ -23,7 +24,9 @@ class DynamodbConnection:
 dynamodb_connection = DynamodbConnection()
 
 
-def get_dynamodb_table(table_name='shorturl', region='eu-west-1'):
+def get_dynamodb_table():
+    table_name = config.get('aws_table_name', 'shorturl')
+    region = config.get('aws_region', 'eu-central-1')
     dyn = dynamodb_connection
     dyn.region = region
     conn = dyn.get()
