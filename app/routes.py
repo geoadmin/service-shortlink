@@ -27,7 +27,7 @@ base_response_headers = {
 }
 
 
-@app.route('/checker', ['GET'])
+@app.route('/checker', methods=['GET'])
 def checker():
     """
     * Quick summary of the function *
@@ -50,7 +50,7 @@ def checker():
     return make_response(jsonify({'success': True, 'message': 'OK'}))
 
 
-@app.route('/shorten', ['POST'])
+@app.route('/shorten', methods=['POST'])
 def create_shortlink():
     """
     * Quick summary of the function *
@@ -106,7 +106,7 @@ def create_shortlink():
     return response
 
 
-@app.route('/redirect/<shortened_url_id>', ['GET'])
+@app.route('/redirect/<shortened_url_id>', methods=['GET'])
 def redirect_shortlink(url_id):
     """
     * Quick summary of the function *
@@ -134,7 +134,7 @@ def redirect_shortlink(url_id):
     return redirect(url)
 
 
-@app.route('/<shortened_url_id>', ['GET'])
+@app.route('/<shortened_url_id>', methods=['GET'])
 def fetch_full_url_from_shortlink(url_id):
     """
     * Quick summary of the function *
