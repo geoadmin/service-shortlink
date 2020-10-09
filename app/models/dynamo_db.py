@@ -1,10 +1,12 @@
+import logging
+import logging.config
 import boto3
 import boto3.exceptions as boto3_exc
 from flask import abort
 from app import app
 from app.helpers.response_generation import make_error_msg
 config = app.config
-
+logger = logging.getLogger(__name__)
 
 class DynamodbConnection:
     # We use a singleton approach, as we do not need more than that.

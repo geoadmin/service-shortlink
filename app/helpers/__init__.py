@@ -10,7 +10,6 @@ from flask import abort
 
 from app.helpers.checks import check_and_get_url_short
 from app.helpers.response_generation import make_error_msg
-from app.models.dynamo_db import get_dynamodb_table
 from app import app
 config = app.config
 logger = logging.getLogger(__name__)
