@@ -29,16 +29,6 @@ class TestDynamoDb(unittest.TestCase):
 
         table = dynamodb.create_table(
             TableName='shorturl',
-            KeySchema=[
-                {
-                    'AttributeName': 'url_short',
-                    'KeyType': 'HASH'
-                },
-                {
-                    'AttributeName': 'url',
-                    'KeyType': 'HASH'
-                }
-            ],
             AttributeDefinitions=[
                 {
                     'AttributeName': 'url',
@@ -57,6 +47,17 @@ class TestDynamoDb(unittest.TestCase):
                     'AttributeType': 'S'
                 },
 
+            ],
+
+            KeySchema=[
+                {
+                    'AttributeName': 'url_short',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'url',
+                    'KeyType': 'HASH'
+                }
             ],
             LocalSecondaryIndexes=[
                 {
@@ -95,9 +96,8 @@ class TestDynamoDb(unittest.TestCase):
         return table
 
     def test_fetch_url(self):
-        logger.info("in test_fetch_url")
+        logger.warning("in test_fetch_url")
         self.setup()
-        logger.info(self.__repr__)
         for key, url in self.keys_and_urls.items():
             assert (fetch_url(self.table, key) == url)
 
