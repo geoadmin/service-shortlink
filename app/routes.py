@@ -106,7 +106,7 @@ def create_shortlink():
     return response
 
 
-@app.route('/redirect/<shortened_url_id>', methods=['GET'])
+@app.route('/redirect/<url_id>', methods=['GET'])
 def redirect_shortlink(url_id):
     """
     * Quick summary of the function *
