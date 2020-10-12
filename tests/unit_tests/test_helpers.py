@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class TestDynamoDb(unittest.TestCase):
-
     def setup(self):
         logger.debug("Setting up Dynamo Db tests")
         self.keys_and_urls = {}
@@ -32,7 +31,7 @@ class TestDynamoDb(unittest.TestCase):
             TableName='shorturl',
             KeySchema=[
                 {
-                    'AttributeName': 'shortlink_id',
+                    'AttributeName': 'url_short',
                     'KeyType': 'HASH'
                 },
                 {
@@ -70,14 +69,14 @@ class TestDynamoDb(unittest.TestCase):
                     ],
                     'Projection': {
                         'ProjectionType': 'INCLUDE',
-                        'NonKeyAttributes': ['shortlink_id']
+                        'NonKeyAttributes': ['url_short']
                     }
                 },
                 {
                     'IndexName': 'shorlinkID',
                     'KeySchema': [
                         {
-                            'AttributeName': 'shortlink_id',
+                            'AttributeName': 'url_short',
                             'KeyType': 'HASH'
                         }
                     ],
@@ -96,10 +95,14 @@ class TestDynamoDb(unittest.TestCase):
         return table
 
     def test_fetch_url(self):
+        logger.info("in test_fetch_url")
+        self.setup()
+        logger.info(self.__repr__)
         for key, url in self.keys_and_urls.items():
             assert (fetch_url(self.table, key) == url)
 
     def test_check_and_get_url_short(self):
+        self.setup()
         for key, url in self.keys_and_urls.items():
             assert (check_and_get_url_short(self.table, url) == key)
 
