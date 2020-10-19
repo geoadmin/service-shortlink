@@ -2,7 +2,7 @@ import unittest
 import logging
 import boto3
 import unittest
-from moto import mock_dynamodb2
+from moto import mock_dynamodb2, mock_iam
 import logging.config
 from app.helpers import add_item, check_and_get_url_short, create_url, fetch_url
 logger = logging.getLogger(__name__)
@@ -117,4 +117,9 @@ class TestDynamoDb(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    with mock_iam():
+        boto3.setup_default_session()
+        iam_resource = boto3.resource('iam')
+        user = iam_resource.create_user(UserName='john') # succeeds
+        print(user)
+        unittest.main()
