@@ -12,21 +12,23 @@ class TestDynamoDb(unittest.TestCase):
     def setup(self):
         logger.debug("Setting up Dynamo Db tests")
         self.keys_and_urls = {}
-        self.testing_urls = []
+        self.testing_urls = ["https://map.geo.admin"]
         self.table = self.create_fake_table()
+        self.populate_table()
+
+    def populate_table(self):
+        logger.warning("Populating the table using the create_url method")
+        for url in self.testing_urls:
+            uuid_key = create_url(self.table, url)
+            self.keys_and_urls[uuid_key] = url
+        logger.warning(self.keys_and_urls)
 
     @mock_dynamodb2
     def create_fake_table(self):
-        logger.debug("Creating fake Dynamo Db Table")
         region = 'eu-central-1'
         dynamodb = boto3.resource('dynamodb', region)
 
-        def populate_table():
-            logger.debug("Populating the table using the create_url method")
-            for url in self.testing_urls:
-                uuid_key = create_url(self.table, url)
-                self.keys_and_urls[uuid_key] = url
-
+        logger.warning("Right before table creation")
         table = dynamodb.create_table(
             TableName='shorturl',
             AttributeDefinitions=[
@@ -45,7 +47,7 @@ class TestDynamoDb(unittest.TestCase):
                 {
                     'AttributeName': 'epoch',
                     'AttributeType': 'S'
-                },
+                }
 
             ],
 
@@ -56,6 +58,14 @@ class TestDynamoDb(unittest.TestCase):
                 },
                 {
                     'AttributeName': 'url',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'timestamp',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'epoch',
                     'KeyType': 'HASH'
                 }
             ],
@@ -92,7 +102,6 @@ class TestDynamoDb(unittest.TestCase):
                 'WriteCapacityUnits': 123
             }
         )
-        populate_table()
         return table
 
     def test_fetch_url(self):
