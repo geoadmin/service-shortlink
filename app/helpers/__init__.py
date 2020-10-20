@@ -55,7 +55,7 @@ def create_url(table, url):
                 'url_short': shortened_url,
                 'url': url,
                 'timestamp': time.strftime('%Y-%m-%d %X', now),
-                'epoch': time.strftime('%s', now)
+                'epoch': str(time.gmtime())
             }
         )
         logger.info(f"Exit create_url function with shortened url --> {shortened_url}")
