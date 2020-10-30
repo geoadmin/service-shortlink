@@ -8,6 +8,7 @@ from app.helpers.response_generation import make_error_msg
 config = app.config
 logger = logging.getLogger(__name__)
 
+
 class DynamodbConnection:
     # We use a singleton approach, as we do not need more than that.
     def __init__(self, region='eu-central-1'):

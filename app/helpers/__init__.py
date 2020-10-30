@@ -40,7 +40,7 @@ def create_url(table, url):
     :return: the shortened url id
     """
     logger.info("Entry in create_url function")
-    logger.debug(f"Parameters for the function : table --> {table.__repr__}, url --> {url}")
+    logger.info(table)
     try:
         # we create a magic number based on epoch for our shortened_url id
         # urls have a maximum size of 2046 character due to a dynamodb limitation
@@ -50,6 +50,7 @@ def create_url(table, url):
                                       f"characters, {len(url)} given)"))
         shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
         now = time.localtime()
+        logger.info("before put")
         table.put_item(
             Item={
                 'url_short': shortened_url,
