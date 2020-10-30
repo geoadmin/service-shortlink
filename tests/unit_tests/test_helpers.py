@@ -59,7 +59,7 @@ class TestDynamoDb(unittest.TestCase):
             ],
             LocalSecondaryIndexes=[
                     {
-                        'IndexName': 'URL',
+                        'IndexName': 'UrlIndex',
                         'KeySchema': [
                             {
                                 'AttributeName': 'url',
@@ -102,6 +102,13 @@ class TestDynamoDb(unittest.TestCase):
         from app.helpers import fetch_url
         for uuid, url in self.uuid_to_url_dict.items():
             self.assertEqual(fetch_url(self.table, uuid), url)
+
+    @mock_dynamodb2
+    def test_check_and_get_url_short(self):
+        self.setup()
+        from app.helpers.checks import check_and_get_url_short
+        for uuid, url in self.uuid_to_url_dict.items():
+            self.assertEqual(check_and_get_url_short(self.table, url), uuid)
 
 
 if __name__ == '__main__':
