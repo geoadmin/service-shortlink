@@ -110,6 +110,12 @@ class TestDynamoDb(unittest.TestCase):
         for uuid, url in self.uuid_to_url_dict.items():
             self.assertEqual(check_and_get_url_short(self.table, url), uuid)
 
+    @mock_dynamodb2
+    def test_check_and_get_url_short_non_existent(self):
+        self.setup()
+        from app.helpers.checks import check_and_get_url_short
+        self.assertEqual(check_and_get_url_short(self.table, "http://non.existent.url.ch"), None)
+
 
 if __name__ == '__main__':
     unittest.main()
