@@ -116,6 +116,17 @@ class TestDynamoDb(unittest.TestCase):
         from app.helpers.checks import check_and_get_url_short
         self.assertEqual(check_and_get_url_short(self.table, "http://non.existent.url.ch"), None)
 
+    @mock_dynamodb2
+    def test_add_item(self):
+        self.setup()
+        from app.helpers import add_item
+        self.assertEqual(self.table.item_count, len(self.valid_urls_list))
+        for url in self.uuid_to_url_dict.values():
+            add_item(self.table, url)
+        self.assertEqual(self.table.item_count, len(self.valid_urls_list))
+        add_item(self.table, "http://map.geo.admin.ch")
+        self.assertEqual(self.table.item_count, len(self.valid_urls_list) + 1)
+
 
 if __name__ == '__main__':
     unittest.main()
