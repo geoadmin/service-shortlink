@@ -45,7 +45,7 @@ def create_url(table, url):
         # we create a magic number based on epoch for our shortened_url id
         # urls have a maximum size of 2046 character due to a dynamodb limitation
         if len(url) > 2046:
-            logger.error(f"Url({url}) given as parameter exceeds characters limit.")
+            logger.error("Url(%s) given as parameter exceeds characters limit." % url)
             abort(make_error_msg(400, f"The url given as parameter was too long. (limit is 2046 "
                                       f"characters, {len(url)} given)"))
         shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
@@ -59,12 +59,12 @@ def create_url(table, url):
                 'epoch': str(time.gmtime())
             }
         )
-        logger.info(f"Exit create_url function with shortened url --> {shortened_url}")
+        logger.info("Exit create_url function with shortened url --> %s" % shortened_url)
         return shortened_url
     # Those are internal server error: error code 500
-    except boto3_exc.Boto3Error as e:
-        logger.error(f"Internal error while writing in dynamodb. Error message is {str(e)}")
-        abort(make_error_msg(500, f"Write units exceeded: {str(e)}"))
+    except boto3_exc.Boto3Error as error:
+        logger.error("Internal error while writing in dynamodb. Error message is %s" % str(error))
+        abort(make_error_msg(500, f"Write units exceeded: {str(error)}"))  # TODO: change this
 
 
 def fetch_url(table, url_id):
@@ -99,9 +99,11 @@ def fetch_url(table, url_id):
         )
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
 
-    except boto3_exc.Boto3Error as e:  # pragma: no cover
-        abort(make_error_msg(500, f'Unexpected internal server error: {str(e)}'))
+    except boto3_exc.Boto3Error as error:  # pragma: no cover
+        logger.error("Internal Error while reading in dynamodb. Error message is %s" % str(error))
+        abort(make_error_msg(500, f'Unexpected internal server error: {str(error)}'))
     if url is None:
+        logger.error("The Shortlink %s was not found in dynamodb." % str(url_id))
         abort(make_error_msg(404, f'This short url doesn\'t exist: s.geo.admin.ch/{str(url_id)}'))
     return url
 
