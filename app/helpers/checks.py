@@ -1,3 +1,5 @@
+import logging
+import logging.config
 from urllib.parse import urlparse
 
 from boto3.dynamodb.conditions import Key
@@ -7,6 +9,7 @@ from app.helpers.response_generation import make_error_msg
 from app import app
 
 config = app.config
+logger = logging.getLogger(__name__)
 
 
 def check_params(scheme, host, url, base_path):
@@ -36,12 +39,18 @@ def check_params(scheme, host, url, base_path):
     :return: the base url to reach the redirected url.
     """
     if url is None:
+        logger.error('No url given to shorten, exiting with a bad request')
         abort(make_error_msg(400, 'url parameter missing from request'))
     hostname = urlparse(url).hostname
     if hostname is None:
+        logger.error('Could not determine hostname from the following url : %s' % url)
         abort(make_error_msg(400, 'Could not determine the query hostname'))
     domain = ".".join(hostname.split(".")[-2:])
     if domain not in config['allowed_domains'] and hostname not in config['allowed_hosts']:
+        logger.error('neither the hostname (%s) nor the domain(%s) are part of their respective'
+                     'allowed list of domains (%s) or hostnames(%s)' %
+                     hostname, domain,
+                     ', '.join(config['allowrd_domains']), ', '.join(config['allowed_hosts']))
         abort(make_error_msg(400, f'Service shortlink can only be used for '
                                   f'{config["allowed_domains"]} domains or '
                                   f'{config["allowed_hosts"]} hosts'))
