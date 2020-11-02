@@ -128,7 +128,7 @@ def redirect_shortlink(url_id):
     """
     logger.info("Entry in redirection at %f with url_id %s" % (time.time(), url_id))
     table = get_dynamodb_table()
-    url = fetch_url(table, url_id)
+    url = fetch_url(table, url_id, request.url_root)
     logger.info("redirecting to the following url : %s" % url)
     return redirect(url)
 
@@ -157,7 +157,7 @@ def fetch_full_url_from_shortlink(url_id):
     """
     logger.info("Entry in url fetch at %f with url_id %s" % (time.time(), url_id))
     table = get_dynamodb_table()
-    url = fetch_url(table, url_id)
+    url = fetch_url(table, url_id, request.url_root)
     logger.info("fetched the following url : %s" % url)
     response = make_response(jsonify({'shorturl': url_id, 'full_url': url, 'success': True}))
     response.headers.set(base_response_headers)
