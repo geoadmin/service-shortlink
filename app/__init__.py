@@ -16,7 +16,7 @@ def main():
 
 if __name__ == '__main__':
     """
-    Entrypoint for the application. At the moment, we do nothing specific, 
+    Entrypoint for the application. At the moment, we do nothing specific,
     but there might be preparatory steps in the future
     """
     main()
