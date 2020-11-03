@@ -56,7 +56,6 @@ def check_params(scheme, host, url, base_path):
                 allowed_domains=', '.join(config['allowed_domains']),
                 allowed_hosts=', '.join(config['allowed_hosts'])
             )
-
         )
         abort(make_error_msg(400, 'Neither Host nor Domain in the url parameter are valid'))
     if host not in config['allowed_hosts']:
