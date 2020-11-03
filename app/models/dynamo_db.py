@@ -20,7 +20,8 @@ class DynamodbConnection:
             try:
                 self.conn = boto3.resource('dynamodb', region_name=self.region)
             except boto3_exc.Boto3Error as error:
-                abort(make_error_msg(500, f'DynamoDB: Error during connection init {error}'))
+                logger.error('internal error during Dynamodb connection init. message is : {error}'.format(error=str(error)))
+                abort(make_error_msg(500, 'Internal error'))
         return self.conn
 
 
@@ -36,9 +37,7 @@ def get_dynamodb_table():
     try:
         return conn.Table(table_name)
     except boto3_exc.Boto3Error as error:
+        logger.error('DynamoDB error during connection to the table {table}. Error message is {error}'.format(table=table_name, error=str(error)))
         abort(
-            make_error_msg(
-                500, f'DynamoDB: Error during connection to the table {table_name}\n'
-                f'{error}'
-            )
+            make_error_msg(500, 'Internal error')
         )
