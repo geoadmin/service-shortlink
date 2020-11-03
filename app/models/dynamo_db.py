@@ -36,5 +36,9 @@ def get_dynamodb_table():
     try:
         return conn.Table(table_name)
     except boto3_exc.Boto3Error as error:
-        abort(make_error_msg(500, f'DynamoDB: Error during connection to the table {table_name}\n'
-                                  f'{error}'))
+        abort(
+            make_error_msg(
+                500, f'DynamoDB: Error during connection to the table {table_name}\n'
+                f'{error}'
+            )
+        )

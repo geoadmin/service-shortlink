@@ -2,7 +2,6 @@ import re
 import logging
 import time
 
-
 from flask import abort
 from flask import jsonify
 from flask import make_response
@@ -86,21 +85,28 @@ def create_shortlink():
     response_headers = base_response_headers
     url = request.json.get('url', None)
     scheme = request.scheme
-    domain = request.url_root.replace(scheme, '')  # this will return the root url without the scheme
+    domain = request.url_root.replace(
+        scheme, ''
+    )  # this will return the root url without the scheme
     base_path = request.script_root
-    logger.debug("params received are : url --> %s, scheme --> %s, "
-                 "domain --> %s, base_path --> %s" % (url, scheme, domain, base_path))
+    logger.debug(
+        "params received are : url --> %s, scheme --> %s, "
+        "domain --> %s, base_path --> %s" % (url, scheme, domain, base_path)
+    )
     base_response_url = check_params(scheme, domain, url, base_path)
     table = get_dynamodb_table()
-    response = make_response(jsonify({
-        "shorturl": ''.join(base_response_url + add_item(table, url)),
-        'success': True
-    }))
+    response = make_response(
+        jsonify({
+            "shorturl": ''.join(base_response_url + add_item(table, url)), 'success': True
+        })
+    )
     response_headers['Access-Control-Allow-Origin'] = request.headers['origin']
     response_headers['Access-Control-Allow-Methods'] = 'POST, OPTION'
     response_headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization,' \
                                                        ' x-requested-with, Origin, Accept'
-    logger.info("Shortlink Creation Successful. Returning the following response: %s" % str(response))
+    logger.info(
+        "Shortlink Creation Successful. Returning the following response: %s" % str(response)
+    )
     response.headers.set(response_headers)
     return response
 

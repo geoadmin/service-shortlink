@@ -46,8 +46,13 @@ def create_url(table, url):
         # urls have a maximum size of 2046 character due to a dynamodb limitation
         if len(url) > 2046:
             logger.error("Url(%s) given as parameter exceeds characters limit." % url)
-            abort(make_error_msg(400, f"The url given as parameter was too long. (limit is 2046 "
-                                      f"characters, {len(url)} given)"))
+            abort(
+                make_error_msg(
+                    400,
+                    f"The url given as parameter was too long. (limit is 2046 "
+                    f"characters, {len(url)} given)"
+                )
+            )
         shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
         now = time.localtime()
         logger.info("before put")
@@ -96,8 +101,7 @@ def fetch_url(table, url_id, url_root):
 
     try:
         response = table.query(
-            IndexName='shortlinkID',
-            KeyConditionExpression=Key('url_short').eq(url_short)
+            IndexName='shortlinkID', KeyConditionExpression=Key('url_short').eq(url_short)
         )
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
 

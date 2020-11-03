@@ -47,17 +47,21 @@ def check_params(scheme, host, url, base_path):
         abort(make_error_msg(400, 'Could not determine the query hostname'))
     domain = ".".join(hostname.split(".")[-2:])
     if domain not in config['allowed_domains'] and hostname not in config['allowed_hosts']:
-        logger.error('neither the hostname (%s) nor the domain(%s) are part of their respective'
-                     'allowed list of domains (%s) or hostnames(%s)' %
-                     hostname, domain,
-                     ', '.join(config['allowed_domains']), ', '.join(config['allowed_hosts']))
+        logger.error(
+            'neither the hostname (%s) nor the domain(%s) are part of their respective'
+            'allowed list of domains (%s) or hostnames(%s)' % hostname,
+            domain,
+            ', '.join(config['allowed_domains']),
+            ', '.join(config['allowed_hosts'])
+        )
         abort(make_error_msg(400, f'Neither Host nor Domain in the url parameter are valid'))
     if host not in config['allowed_hosts']:
         """
         This allows for compatibility with dev hosts or local builds for testing purpose.
         """
-        base_url = ''.join((scheme, '://', host, base_path if 'localhost' not in host else '',
-                            '/redirect/'))
+        base_url = ''.join(
+            (scheme, '://', host, base_path if 'localhost' not in host else '', '/redirect/')
+        )
     else:
         base_url = ''.join((scheme, '://s.geo.admin.ch/'))
 
