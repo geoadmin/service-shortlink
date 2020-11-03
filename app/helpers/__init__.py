@@ -69,7 +69,7 @@ def create_url(table, url):
     # Those are internal server error: error code 500
     except boto3_exc.Boto3Error as error:
         logger.error("Internal error while writing in dynamodb. Error message is %s",  str(error))
-        abort(make_error_msg(500, f"Write units exceeded: {str(error)}"))  # TODO: change this
+        abort(make_error_msg(500, f"Write units exceeded: {str(error)}"))
 
 
 def fetch_url(table, url_id, url_root):
