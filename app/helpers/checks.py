@@ -51,9 +51,7 @@ def check_params(scheme, host, url, base_path):
                      'allowed list of domains (%s) or hostnames(%s)' %
                      hostname, domain,
                      ', '.join(config['allowrd_domains']), ', '.join(config['allowed_hosts']))
-        abort(make_error_msg(400, f'Service shortlink can only be used for '
-                                  f'{config["allowed_domains"]} domains or '
-                                  f'{config["allowed_hosts"]} hosts'))
+        abort(make_error_msg(400, f'Neither Host nor Domain in the url parameter are valid'))
     if host not in config['allowed_hosts']:
         """
         This allows for compatibility with dev hosts or local builds for testing purpose.
