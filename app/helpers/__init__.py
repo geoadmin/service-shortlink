@@ -99,13 +99,12 @@ def fetch_url(table, url_id, url_root):
     https://service-shortlink.dev.bgdi.ch/
     :return url: the full url corresponding to the url_id in DynamoDB
     """
-    url_short = url_id
 
     url = None
 
     try:
         response = table.query(
-            IndexName='shortlinkID', KeyConditionExpression=Key('url_short').eq(url_short)
+            IndexName='shortlinkID', KeyConditionExpression=Key('url_short').eq(url_id)
         )
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
 
