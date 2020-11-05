@@ -19,8 +19,8 @@ def create_url(table, url):
     """
     * Quick summary of the function *
 
-    This function creates an id using a magic number based on epoch, then try to write to DynamoDB to save the
-    short url.
+    This function creates an id using a magic number based on epoch, then try to write to DynamoDB
+    to save the short url.
 
     * abortions originating in this function *
 
