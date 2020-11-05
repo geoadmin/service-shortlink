@@ -107,8 +107,7 @@ class TestDynamoDb(unittest.TestCase):
     def test_fetch_url_nonexistent(self):
         # self.assertEqual(fetch_url(self.table, "nonexistent", "test.admin.ch/"), url)
         self.setup()
-        pass
-    # TODO in the function : create context, ensure error message is correct
+    # FIXME in the function : create context, ensure error message is correct
 
     @mock_dynamodb2
     def test_check_and_get_url_short(self):
