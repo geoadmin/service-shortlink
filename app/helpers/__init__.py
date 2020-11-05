@@ -19,8 +19,8 @@ def create_url(table, url):
     """
     * Quick summary of the function *
 
-    This function creates an id using the uuid library which will act as the shortened url,
-    store it in DynamoDB and returns it
+    This function creates an id using a magic number based on epoch, then try to write to DynamoDB to save the
+    short url.
 
     * abortions originating in this function *
 
@@ -53,7 +53,8 @@ def create_url(table, url):
                     f"characters, {len(url)} given)"
                 )
             )
-        shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
+        # shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
+        shortened_url = f'{int(time.time() * 1000) - 1000000000000}'
         now = time.localtime()
         table.put_item(
             Item={
@@ -63,14 +64,18 @@ def create_url(table, url):
                 'epoch': str(time.gmtime())
             }
         )
-        logger.info("Exit create_url function with shortened url --> {shortened_url}".format(
-            shortened_url=shortened_url)
+        logger.info(
+            "Exit create_url function with shortened url --> {shortened_url}".format(
+                shortened_url=shortened_url
+            )
         )
         return shortened_url
     # Those are internal server error: error code 500
     except boto3_exc.Boto3Error as error:
-        logger.error("Internal error while writing in dynamodb. Error message is {error}".format(
-            error=str(error))
+        logger.error(
+            "Internal error while writing in dynamodb. Error message is {error}".format(
+                error=str(error)
+            )
         )
         abort(make_error_msg(500, f"Write units exceeded: {str(error)}"))
 
@@ -109,8 +114,10 @@ def fetch_url(table, url_id, url_root):
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
 
     except boto3_exc.Boto3Error as error:  # pragma: no cover
-        logger.error("Internal Error while reading in dynamodb. Error message is {error}".format(
-            error=str(error))
+        logger.error(
+            "Internal Error while reading in dynamodb. Error message is {error}".format(
+                error=str(error)
+            )
         )
         abort(make_error_msg(500, f'Unexpected internal server error: {str(error)}'))
     if url is None:
