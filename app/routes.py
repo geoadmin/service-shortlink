@@ -47,6 +47,7 @@ def checker():
     """
     # These multiple loggers are here to help me undestand which log syntax should be used
     logger.info("Checker route entered at %s", str(time.time()))
+    logger.info("Checker route entered at {}", str(time.time()))
     logger.info("Checker route entered at %s" % str(time.time()))
     logger.info("Checker route entered at {time}".format(time=str(time.time())))
     logger.info(f"Checker route entered at {str(time.time())}")
