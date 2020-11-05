@@ -114,7 +114,7 @@ def fetch_url(table, url_id, url_root):
         )
         abort(make_error_msg(500, f'Unexpected internal server error: {str(error)}'))
     if url is None:
-        logger.error("The Shortlink {} was not found in dynamodb.", url_id)
+        logger.error("The Shortlink {} was not found in dynamodb.".format(url_id))
         abort(make_error_msg(404, f'This short url doesn\'t exist: {url_root}{str(url_id)}'))
     return url
 
