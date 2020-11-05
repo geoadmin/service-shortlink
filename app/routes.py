@@ -46,11 +46,12 @@ def checker():
     :return: a simple json saying basically 'OK'
     """
     # These multiple loggers are here to help me undestand which log syntax should be used
-    logger.info("Checker route entered at %f", time.time())
-    logger.info("Checker route entered at %f" % time.time())
-    logger.info("Checker route entered at {time}".format(time=time.time()))
-    logger.info(f"Checker route entered at {time.time()}")
+    logger.info("Checker route entered at %s", str(time.time()))
+    logger.info("Checker route entered at %s" % str(time.time()))
+    logger.info("Checker route entered at {time}".format(time=str(time.time())))
+    logger.info(f"Checker route entered at {str(time.time())}")
     return make_response(jsonify({'success': True, 'message': 'OK'}))
+
 
 
 @app.route('/shorten', methods=['POST'])
