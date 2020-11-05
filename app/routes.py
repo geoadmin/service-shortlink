@@ -45,7 +45,11 @@ def checker():
 
     :return: a simple json saying basically 'OK'
     """
+    # These multiple loggers are here to help me undestand which log syntax should be used
+    logger.info("Checker route entered at %f", time.time())
     logger.info("Checker route entered at %f",  time.time())
+    logger.info("Checker route entered at {time}".format(time=time.time()))
+    logger.info(f"Checker route entered at {time.time()}")
     return make_response(jsonify({'success': True, 'message': 'OK'}))
 
 
@@ -91,7 +95,7 @@ def create_shortlink():
     base_path = request.script_root
     logger.debug(
         "params received are : url --> %s, scheme --> %s, "
-        "domain --> %s, base_path --> %s",  (url, scheme, domain, base_path)
+        "domain --> %s, base_path --> %s",  url, scheme, domain, base_path
     )
     base_response_url = check_params(scheme, domain, url, base_path)
     table = get_dynamodb_table()
