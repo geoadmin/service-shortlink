@@ -6,6 +6,7 @@ import os
 import boto3
 
 from moto import mock_dynamodb2
+from app import app
 from app.helpers.checks import check_and_get_url_short
 from app.helpers import add_item
 from app.helpers import create_url
@@ -105,9 +106,9 @@ class TestDynamoDb(unittest.TestCase):
 
     @mock_dynamodb2
     def test_fetch_url_nonexistent(self):
-        # self.assertEqual(fetch_url(self.table, "nonexistent", "test.admin.ch/"), url)
         self.setup()
-    # FIXME in the function : create context, ensure error message is correct
+        with app.app_context() as context:
+            self.assertEqual(fetch_url(self.table, "nonexistent", "test.admin.ch/"), "")
 
     @mock_dynamodb2
     def test_check_and_get_url_short(self):
