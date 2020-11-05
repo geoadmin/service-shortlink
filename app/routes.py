@@ -95,15 +95,7 @@ def create_shortlink():
     base_path = request.script_root
     logger.debug(
         "params received are : url --> %s, scheme --> %s, "
-<<<<<<< HEAD
-<<<<<<< HEAD
-        "domain --> %s, base_path --> %s",  url, scheme, domain, base_path
-=======
         "domain --> %s, base_path --> %s", (url, scheme, domain, base_path)
->>>>>>> 2e9fc2d774d2450e1d301458a73a6d9069d8c9c0
-=======
-        "domain --> %s, base_path --> %s", (url, scheme, domain, base_path)
->>>>>>> 2e9fc2d774d2450e1d301458a73a6d9069d8c9c0
     )
     base_response_url = check_params(scheme, domain, url, base_path)
     table = get_dynamodb_table()
