@@ -45,7 +45,7 @@ def create_url(table, url):
         # we create a magic number based on epoch for our shortened_url id
         # urls have a maximum size of 2046 character due to a dynamodb limitation
         if len(url) > 2046:
-            logger.error("Url({url}) given as parameter exceeds characters limit.".format(url=url))
+            logger.error("Url({}) given as parameter exceeds characters limit.", url)
             abort(
                 make_error_msg(
                     400,
@@ -65,17 +65,13 @@ def create_url(table, url):
             }
         )
         logger.info(
-            "Exit create_url function with shortened url --> {shortened_url}".format(
-                shortened_url=shortened_url
-            )
+            "Exit create_url function with shortened url --> {}", shortened_url
         )
         return shortened_url
     # Those are internal server error: error code 500
     except boto3_exc.Boto3Error as error:
         logger.error(
-            "Internal error while writing in dynamodb. Error message is {error}".format(
-                error=str(error)
-            )
+            "Internal error while writing in dynamodb. Error message is {}", error
         )
         abort(make_error_msg(500, f"Write units exceeded: {str(error)}"))
 
@@ -115,13 +111,11 @@ def fetch_url(table, url_id, url_root):
 
     except boto3_exc.Boto3Error as error:  # pragma: no cover
         logger.error(
-            "Internal Error while reading in dynamodb. Error message is {error}".format(
-                error=str(error)
-            )
+            "Internal Error while reading in dynamodb. Error message is {}", error
         )
         abort(make_error_msg(500, f'Unexpected internal server error: {str(error)}'))
     if url is None:
-        logger.error("The Shortlink {url_id} was not found in dynamodb.".format(url_id=str(url_id)))
+        logger.error("The Shortlink {} was not found in dynamodb.", url_id)
         abort(make_error_msg(404, f'This short url doesn\'t exist: {url_root}{str(url_id)}'))
     return url
 
@@ -160,7 +154,7 @@ def get_logging_cfg():
     with open(cfg_file, 'rt') as fd:
         cfg = yaml.safe_load(fd.read())
         fd.close()
-        logger.debug('Load logging configuration from file {cfg_file}}'.format(cfg_file=cfg_file))
+        logger.debug('Load logging configuration from file {}', cfg_file)
         return cfg
 
 
