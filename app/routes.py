@@ -45,14 +45,8 @@ def checker():
 
     :return: a simple json saying basically 'OK'
     """
-    # These multiple loggers are here to help me undestand which log syntax should be used
-    logger.info("Checker route entered at %s", str(time.time()))
     logger.info("Checker route entered at {}", str(time.time()))
-    logger.info("Checker route entered at %s" % str(time.time()))
-    logger.info("Checker route entered at {time}".format(time=str(time.time())))
-    logger.info(f"Checker route entered at {str(time.time())}")
     return make_response(jsonify({'success': True, 'message': 'OK'}))
-
 
 
 @app.route('/shorten', methods=['POST'])
@@ -83,7 +77,7 @@ def create_shortlink():
     :request: the request must contain a Origin Header, and a json payload with an url field
     :return: a json in response which contains the url which will redirect to the initial url
     """
-    logger.info("Shortlink Creation route entered at %f", time.time())
+    logger.info("Shortlink Creation route entered at {}", time.time())
     if request.headers.get('Origin') is None or not \
             re.match(Config.allowed_domains_pattern, request.headers['Origin']):
         logger.critical("Shortlink Error: Invalid Origin")
@@ -96,8 +90,8 @@ def create_shortlink():
     )  # this will return the root url without the scheme
     base_path = request.script_root
     logger.debug(
-        "params received are : url --> %s, scheme --> %s, "
-        "domain --> %s, base_path --> %s", (url, scheme, domain, base_path)
+        "params received are : url --> {}, scheme --> {}, "
+        "domain --> {}, base_path --> {}", (url, scheme, domain, base_path)
     )
     base_response_url = check_params(scheme, domain, url, base_path)
     table = get_dynamodb_table()
@@ -111,7 +105,7 @@ def create_shortlink():
     response_headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization,' \
                                                        ' x-requested-with, Origin, Accept'
     logger.info(
-        "Shortlink Creation Successful. Returning the following response: %s", str(response)
+        "Shortlink Creation Successful. Returning the following response: {}", str(response)
     )
     response.headers.set(response_headers)
     return response
@@ -138,10 +132,10 @@ def redirect_shortlink(url_id):
     :param url_id: a short url id
     :return: a redirection to the full url
     """
-    logger.info("Entry in redirection at %f with url_id %s", (time.time(), url_id))
+    logger.info("Entry in redirection at {} with url_id {}", (time.time(), url_id))
     table = get_dynamodb_table()
     url = fetch_url(table, url_id, request.url_root)
-    logger.info("redirecting to the following url : %s", url)
+    logger.info("redirecting to the following url : {}", url)
     return redirect(url)
 
 
@@ -167,10 +161,10 @@ def fetch_full_url_from_shortlink(url_id):
     :param url_id: a short url id
     :return: a json with the full url
     """
-    logger.info("Entry in url fetch at %f with url_id %s", (time.time(), url_id))
+    logger.info("Entry in url fetch at {} with url_id {}", (time.time(), url_id))
     table = get_dynamodb_table()
     url = fetch_url(table, url_id, request.url_root)
-    logger.info("fetched the following url : %s", url)
+    logger.info("fetched the following url : {}", url)
     response = make_response(jsonify({'shorturl': url_id, 'full_url': url, 'success': True}))
     response.headers.set(base_response_headers)
     return response
