@@ -1,23 +1,24 @@
-import boto3
 import logging
+import logging.config
 import unittest
 import os
+
+import boto3
+
 from moto import mock_dynamodb2
 from app.helpers.checks import check_and_get_url_short
 from app.helpers import add_item
 from app.helpers import create_url
 from app.helpers import fetch_url
 
-import logging.config
 logger = logging.getLogger(__name__)
-
-setup_already_made = 0
 
 
 class TestDynamoDb(unittest.TestCase):
 
     @mock_dynamodb2
     def setup(self):
+        # pylint: disable=attribute-defined-outside-init
         self.valid_urls_list = [
             "https://map.geo.admin.ch/?lang=fr&topic=ech&bgLayer=ch.swisstopo.pixelkarte-farbe&layers=ch.swisstopo.zeitreihen,ch.bfs.gebaeude_wohnungs_register,ch.bav.haltestellen-oev,ch.swisstopo.swisstlm3d-wanderwege&layers_opacity=1,1,1,0.8&layers_visibility=false,false,false,false&layers_timestamp=18641231,,,",  # pylint: disable=line-too-long
             "https://map.geo.admin.ch/?lang=fr&topic=ech&bgLayer=ch.swisstopo.pixelkarte-farbe&layers=ch.swisstopo.swisstlm3d-wanderwege&layers_opacity=0.8",  # pylint: disable=line-too-long
