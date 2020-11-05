@@ -19,8 +19,8 @@ def create_url(table, url):
     """
     * Quick summary of the function *
 
-    This function creates an id using the uuid library which will act as the shortened url,
-    store it in DynamoDB and returns it
+    This function creates an id using a magic number based on epoch, then try to write to DynamoDB to save the
+    short url.
 
     * abortions originating in this function *
 
@@ -53,7 +53,8 @@ def create_url(table, url):
                     f"characters, {len(url)} given)"
                 )
             )
-        shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
+        # shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
+        shortened_url = f'{int(time.time() * 1000) - 1000000000000}'
         now = time.localtime()
         table.put_item(
             Item={
