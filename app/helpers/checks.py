@@ -43,14 +43,14 @@ def check_params(scheme, host, url, base_path):
         abort(make_error_msg(400, 'url parameter missing from request'))
     hostname = urlparse(url).hostname
     if hostname is None:
-        logger.error("Could not determine hostname from the following url : {}", url)
+        logger.error("Could not determine hostname from the following url : %s", url)
         abort(make_error_msg(400, 'Could not determine the query hostname'))
     domain = ".".join(hostname.split(".")[-2:])
     if domain not in config['allowed_domains'] and hostname not in config['allowed_hosts']:
         logger.error(
-            "neither the hostname ({hostname}) nor the domain({domain}) are part of their "
-            "respective allowed list of domains ({allowed_domains}) or "
-            "hostnames({allowed_hosts})",
+            "neither the hostname (%s) nor the domain(%s) are part of their "
+            "respective allowed list of domains (%s) or "
+            "hostnames(%s)",
             hostname,
             domain,
             ', '.join(config['allowed_domains']),
