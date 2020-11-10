@@ -140,7 +140,7 @@ def redirect_shortlink(url_id):
 
 
 @app.route('/<shortened_url_id>', methods=['GET'])
-def fetch_full_url_from_shortlink(url_id):
+def fetch_full_url_from_shortlink(shortened_url_id):
     """
     * Quick summary of the function *
 
@@ -161,10 +161,10 @@ def fetch_full_url_from_shortlink(url_id):
     :param url_id: a short url id
     :return: a json with the full url
     """
-    logger.info("Entry in url fetch at %f with url_id %s", time.time(), url_id)
+    logger.info("Entry in url fetch at %f with url_id %s", time.time(), shortened_url_id)
     table = get_dynamodb_table()
-    url = fetch_url(table, url_id, request.url_root)
+    url = fetch_url(table, shortened_url_id, request.url_root)
     logger.info("fetched the following url : %s", url)
-    response = make_response(jsonify({'shorturl': url_id, 'full_url': url, 'success': True}))
+    response = make_response(jsonify({'shorturl': shortened_url_id, 'full_url': url, 'success': True}))
     response.headers.set(base_response_headers)
     return response
