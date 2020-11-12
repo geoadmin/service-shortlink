@@ -1,12 +1,21 @@
 import json
 import re
 import unittest
-from flask import make_response
-from flask import jsonify
+import os
+import boto3
+import logging
+import logging.config
 
 import service_config
 from app import app
-from app import routes
+from app.helpers import create_url
+from moto import mock_dynamodb2
+from mock import Mock
+from mock import patch
+
+from app.models.dynamo_db import get_dynamodb_table
+
+logger = logging.getLogger(__name__)
 
 """
     TODO :
@@ -14,11 +23,95 @@ from app import routes
         2. Mock 'get_dynamodb()' call to return the fake db
         3. for each call, 
 """
-
 class TestRoutes(unittest.TestCase):
 
+    @mock_dynamodb2
     def setUp(self):
+        # pylint: disable=attribute-defined-outside-init
+        # pylint: disable=line-too-long
         self.app = app.test_client()
+        self.valid_urls_list = [
+            "https://map.geo.admin.ch/?lang=fr&topic=ech&bgLayer=ch.swisstopo.pixelkarte-farbe&layers=ch.swisstopo.zeitreihen,ch.bfs.gebaeude_wohnungs_register,ch.bav.haltestellen-oev,ch.swisstopo.swisstlm3d-wanderwege&layers_opacity=1,1,1,0.8&layers_visibility=false,false,false,false&layers_timestamp=18641231,,,",
+            "https://map.geo.admin.ch/?lang=fr&topic=ech&bgLayer=ch.swisstopo.pixelkarte-farbe&layers=ch.swisstopo.swisstlm3d-wanderwege&layers_opacity=0.8",
+            "https://map.geo.admin.ch/?lang=fr&topic=ech&bgLayer=ch.swisstopo.pixelkarte-farbe&layers=ch.swisstopo.swisstlm3d-wanderwege,ch.swisstopo.vec200-landcover,ch.bfs.arealstatistik-waldmischungsgrad,ch.bafu.biogeographische_regionen,ch.bfs.arealstatistik-bodenbedeckung-1985&layers_opacity=0.8,0.75,0.75,0.75,0.75&catalogNodes=457,477"
+        ]
+        self.invalid_urls_list = [
+            "https://map.geo.admin.ch/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/"
+        ]
+        self.uuid_to_url_dict = dict()
+        os.environ['AWS_ACCESS_KEY_ID'] = 'testing'
+        os.environ['AWS_SECRET_ACCESS_KEY'] = 'testing'
+        os.environ['AWS_SECURITY_TOKEN'] = 'testing'
+        os.environ['AWS_SESSION_TOKEN'] = 'testing'
+        logger.debug("Setting up Dynamo Db tests")
+        region = 'eu-central-1'
+        self.connection = boto3.resource('dynamodb', region)
+        self.connection.create_table(
+            TableName='shorturl',
+            AttributeDefinitions=[
+                {
+                    'AttributeName': 'url',
+                    'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'url_short',
+                    'AttributeType': 'S'
+                }
+
+            ],
+            KeySchema=[
+                {
+                    'AttributeName': 'url_short',
+                    'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'url',
+                    'KeyType': 'HASH'
+                }
+            ],
+            LocalSecondaryIndexes=[
+                {
+                    'IndexName': 'UrlIndex',
+                    'KeySchema': [
+                        {
+                            'AttributeName': 'url',
+                            'KeyType': 'HASH'
+                        }
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE',
+                        'NonKeyAttributes': ['url_short']
+                    }
+                },
+                {
+                    'IndexName': 'shortlinkID',
+                    'KeySchema': [
+                        {
+                            'AttributeName': 'url_short',
+                            'KeyType': 'HASH'
+                        }
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE',
+                        'NonKeyAttributes': ['url']
+                    }
+                }
+            ],
+            ProvisionedThroughput={
+                'ReadCapacityUnits': 123,
+                'WriteCapacityUnits': 123
+            }
+        )
+        self.table = self.connection.Table('shorturl')
+        for url in self.valid_urls_list:
+            uuid = (create_url(self.table, url))
+            self.uuid_to_url_dict[uuid] = url
+
+    def prepare_mock(self, mock_get_dynamodb_table):
+        mock_get_dynamodb_table.get_dynamodb_table.return_value = self.__fake_get_dynamo_db()
+
+    def __fake_get_dynamo_db(self):
+        return self.table
 
     def test_checker_ok(self):
         # checker
@@ -30,21 +123,24 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual(response.content_type, "application/json")
         self.assertEqual(response.json, {'success': True, 'message': 'OK'})
 
+    @mock_dynamodb2
     def test_create_shortlink_ok(self):
         self.setUp()
-        response = self.app.post(
-            f"/shorten",
-            data=json.dumps({"url": "https://map.geo.admin.ch/test"}),
-            content_type="application/json",
-            headers={"Origin": "map.geo.admin.ch"}
-        )
-        print(response.json)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content_type, "application/json")
-        # as the shorturl won't be known beforehand, we are not trying to check if it's equal to something
-        # only if it looks like what we expect
-        self.assertEqual(response.json.get('success'), True)
-        self.assertEqual(re.search(r"^\d{10}$", response.json.get('shorturl')) is not None, True)
+        import app.models.dynamo_db as dynamo_db
+        with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
+                response = self.app.post(
+                    f"/shorten",
+                    data=json.dumps({"url": "https://map.geo.admin.ch/test"}),
+                    content_type="application/json",
+                    headers={"Origin": "map.geo.admin.ch"}
+                )
+                print(response.json)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.content_type, "application/json")
+                # as the shorturl won't be known beforehand, we are not trying to check if it's equal to something
+                # only if it looks like what we expect
+                self.assertEqual(response.json.get('success'), True)
+                self.assertEqual(re.search(r"^\d{10}$", response.json.get('shorturl')) is not None, True)
 
     """
     The following tests should all return a 400 error code
