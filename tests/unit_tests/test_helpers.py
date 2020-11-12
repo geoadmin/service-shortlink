@@ -6,13 +6,18 @@ import os
 import boto3
 
 from moto import mock_dynamodb2
+
+import service_config
 from app import app
+from app.helpers.checks import check_params
 from app.helpers.checks import check_and_get_url_short
 from app.helpers import add_item
 from app.helpers import create_url
 from app.helpers import fetch_url
-
+from werkzeug.exceptions import HTTPException
 logger = logging.getLogger(__name__)
+app.config['allowed_hosts'] = service_config.Config.allowed_hosts
+app.config['allowed_domains'] = service_config.Config.allowed_domains
 
 
 class TestDynamoDb(unittest.TestCase):
@@ -98,6 +103,66 @@ class TestDynamoDb(unittest.TestCase):
             uuid = (create_url(self.table, url))
             self.uuid_to_url_dict[uuid] = url
 
+    def test_check_params_OK_http(self):
+        with app.app_context():
+            base_path = check_params(scheme='http',
+                                     host='api3.geo.admin.ch',
+                                     url='https://map.geo.admin.ch/enclume',
+                                     base_path='/v4/shortlink')
+            self.assertEqual(base_path, 'http://s.geo.admin.ch/')
+
+    def test_check_params_OK_https(self):
+        with app.app_context():
+            base_path = check_params(scheme='https',
+                                     host='api3.geo.admin.ch',
+                                     url='https://map.geo.admin.ch/enclume',
+                                     base_path='/v4/shortlink')
+            self.assertEqual(base_path, 'https://s.geo.admin.ch/')
+
+    def test_check_params_OK_non_standard_host(self):
+        with app.app_context():
+            base_path = check_params(scheme='https',
+                                     host='service-shortlink.dev.bgdi.ch',
+                                     url='https://map.geo.admin.ch/enclume',
+                                     base_path='/v4/shortlink')
+            self.assertEqual(base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/redirect/')
+
+    def test_check_params_NOK_no_url(self):
+        with app.app_context():
+            with self.assertRaises(HTTPException) as http_error:
+                check_params(scheme='https',
+                             host='service-shortlink.dev.bgdi.ch',
+                             url=None,
+                             base_path='/v4/shortlink')
+                self.assertEqual(http_error.exception.code, 400)
+
+    def test_check_params_NOK_url_empty_string(self):
+        with app.app_context():
+            with self.assertRaises(HTTPException) as http_error:
+                check_params(scheme='https',
+                             host='service-shortlink.dev.bgdi.ch',
+                             url='',
+                             base_path='/v4/shortlink')
+                self.assertEqual(http_error.exception.code, 400)
+
+    def test_check_params_NOK_url_no_host(self):
+        with app.app_context():
+            with self.assertRaises(HTTPException) as http_error:
+                check_params(scheme='https',
+                             host='service-shortlink.dev.bgdi.ch',
+                             url='/?layers=ch.bfe.elektromobilität',
+                             base_path='/v4/shortlink')
+                self.assertEqual(http_error.exception.code, 400)
+
+    def test_check_params_NOK_url_from_non_valid_domains_or_hostname(self):
+        with app.app_context():
+            with self.assertRaises(HTTPException) as http_error:
+                check_params(scheme='https',
+                             host='service-shortlink.dev.bgdi.ch',
+                             url='https://www.this.is.quite.invalid.ch/?layers=ch.bfe.elektromobilität',
+                             base_path='/v4/shortlink')
+                self.assertEqual(http_error.exception.code, 400)
+
     @mock_dynamodb2
     def test_fetch_url(self):
         self.setup()
@@ -107,8 +172,10 @@ class TestDynamoDb(unittest.TestCase):
     @mock_dynamodb2
     def test_fetch_url_nonexistent(self):
         self.setup()
-        with app.app_context() as context:
-            self.assertEqual(fetch_url(self.table, "nonexistent", "test.admin.ch/"), "")
+        with app.app_context():
+            with self.assertRaises(HTTPException) as http_error:
+                fetch_url(self.table, "nonexistent", "test.admin.ch/")
+                self.assertEqual(http_error.exception.code, 400)
 
     @mock_dynamodb2
     def test_check_and_get_url_short(self):
