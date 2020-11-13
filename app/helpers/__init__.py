@@ -24,8 +24,6 @@ def create_url(table, url):
 
     * abortions originating in this function *
 
-    abort with a 400 status code if the url given as parameter exceeds 2046 characters (DynamoDB
-    limitation)
     abort with a 500 status code on a writing error in DynamoDB
 
     * abortions originating in functions called from this function *
@@ -43,16 +41,6 @@ def create_url(table, url):
     logger.info(table)
     try:
         # we create a magic number based on epoch for our shortened_url id
-        # urls have a maximum size of 2046 character due to a dynamodb limitation
-        if len(url) > 2046:
-            logger.error("Url(%s) given as parameter exceeds characters limit.", url)
-            abort(
-                make_error_msg(
-                    400,
-                    f"The url given as parameter was too long. (limit is 2046 "
-                    f"characters, {len(url)} given)"
-                )
-            )
         # shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
         shortened_url = f'{int(time.time() * 1000) - 1000000000000}'
         now = time.localtime()

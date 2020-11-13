@@ -23,6 +23,7 @@ def check_params(scheme, host, url, base_path):
     * Abortions originating in this function *
 
     Abort with a 400 status code if there is no url, given to shorten
+    Abort with a 400 status code if the url is over 2046 characters long (dynamodb limitation)
     Abort with a 400 status code if the application hostname can't be determined
     Abort with a 400 status code if the application domain is not one of the allowed ones.
 
@@ -38,9 +39,20 @@ def check_params(scheme, host, url, base_path):
     :param base_path: the reverse proxy paths in front of this service
     :return: the base url to reach the redirected url.
     """
+    print(url)
     if url is None:
         logger.error('No url given to shorten, exiting with a bad request')
         abort(make_error_msg(400, 'url parameter missing from request'))
+        # urls have a maximum size of 2046 character due to a dynamodb limitation
+    if len(url) > 2046:
+        logger.error("Url(%s) given as parameter exceeds characters limit.", url)
+        abort(
+            make_error_msg(
+                400,
+                f"The url given as parameter was too long. (limit is 2046 "
+                f"characters, {len(url)} given)"
+            )
+        )
     hostname = urlparse(url).hostname
     if hostname is None:
         logger.error("Could not determine hostname from the following url : %s", url)
