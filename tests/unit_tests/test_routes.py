@@ -13,6 +13,10 @@ from moto import mock_dynamodb2
 from mock import Mock
 from mock import patch
 
+from service_config import Config
+app.config['allowed_hosts'] = service_config.Config.allowed_hosts
+app.config['allowed_domains'] = service_config.Config.allowed_domains
+
 from app.models.dynamo_db import get_dynamodb_table
 
 logger = logging.getLogger(__name__)
@@ -120,7 +124,7 @@ class TestRoutes(unittest.TestCase):
             f"/checker", headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content_type, "application/json")
+        self.assertEqual(response.content_type, "application/json; charset=utf-8")
         self.assertEqual(response.json, {'success': True, 'message': 'OK'})
 
     @mock_dynamodb2
@@ -128,40 +132,57 @@ class TestRoutes(unittest.TestCase):
         self.setUp()
         import app.models.dynamo_db as dynamo_db
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
-                response = self.app.post(
-                    f"/shorten",
-                    data=json.dumps({"url": "https://map.geo.admin.ch/test"}),
-                    content_type="application/json",
-                    headers={"Origin": "map.geo.admin.ch"}
-                )
-                print(response.json)
-                self.assertEqual(response.status_code, 200)
-                self.assertEqual(response.content_type, "application/json")
-                # as the shorturl won't be known beforehand, we are not trying to check if it's equal to something
-                # only if it looks like what we expect
-                self.assertEqual(response.json.get('success'), True)
-                self.assertEqual(re.search(r"^\d{10}$", response.json.get('shorturl')) is not None, True)
+            response = self.app.post(
+                f"/shorten",
+                data=json.dumps({"url": "https://map.geo.admin.ch/test"}),
+                content_type="application/json",
+                headers={"Origin": "map.geo.admin.ch"}
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.content_type, "application/json; charset=utf-8")
+            # as the shorturl won't be known beforehand, we are not trying to check if it's equal to something
+            # only if it looks like what we expect
+            self.assertEqual(response.json.get('success'), True)
+            self.assertEqual(re.search(r"^\d{10}$", response.json.get('shorturl')) is not None, True)
 
     """
     The following tests should all return a 400 error code
     """
-    def test_create_shortlink_no_url(self):
+    def test_create_shortlink_no_json(self):
         self.setUp()
         response = self.app.post(
-            f"/shorten",
+            "/shorten",
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
         )
-        print(response)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content_type, "application/json")
-        self.assertEqual(response.json, {
+        self.assertEqual(400, response.status_code)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual({
             'success': False,
             'error': {
                 'code': 400,
-                'message': 'No url given to shorten, exiting with a bad request'
+                'message': 'This service requires a json to be posted as a payload.'
             }
-        })
+        }, response.json)
+
+    def test_create_shortlink_no_url(self):
+        self.setUp()
+        response = self.app.post(
+            "/shorten",
+            data=json.dumps({}),
+            content_type="application/json",
+            headers={"Origin": "map.geo.admin.ch"}
+        )
+        self.assertEqual(400, response.status_code)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual({
+            'success': False,
+            'error': {
+                'code': 400,
+                'message': 'url parameter missing from request'
+            }
+
+            }, response.json)
 
     def test_create_shortlink_no_hostname(self):
         self.setUp()
@@ -214,7 +235,7 @@ class TestRoutes(unittest.TestCase):
             'success': False,
             'error': {
                 'code': 400,
-                'message': f"Url({url}) given as parameter exceeds characters limit."
+                'message': "The url given as parameter was too long. (limit is 2046 characters, 2946 given)"
             }
         })
 
@@ -234,7 +255,7 @@ class TestRoutes(unittest.TestCase):
         self.setUp()
         response = self.app.get(
             f"/redirect/nonexistent",
-            content_type="text/html",
+            content_type="text/html; charset=utf-8",
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 404)
@@ -250,7 +271,7 @@ class TestRoutes(unittest.TestCase):
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content_type, "application/json")
+        self.assertEqual(response.content_type, "application/json; charset=utf-8")
         self.assertEqual(response.json, {
             'shorturl': "1578091241",
             'full_url': "url",
@@ -265,7 +286,7 @@ class TestRoutes(unittest.TestCase):
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.content_type, "application/json")
+        self.assertEqual(response.content_type, "application/json; charset=utf-8")
         self.assertEqual(response.json, {
             'shorturl': "1578091241",
             'full_url': "url",
