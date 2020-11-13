@@ -15,6 +15,7 @@ from app.helpers.checks import check_params
 from app.helpers.response_generation import make_error_msg
 from app.models.dynamo_db import get_dynamodb_table
 from service_config import Config
+from werkzeug.exceptions import BadRequest
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,9 @@ def checker():
     :return: a simple json saying basically 'OK'
     """
     logger.info("Checker route entered at %f", str(time.time()))
-    return make_response(jsonify({'success': True, 'message': 'OK'}))
+    response = make_response(jsonify({'success': True, 'message': 'OK'}), 200)
+    response.headers = base_response_headers
+    return response
 
 
 @app.route('/shorten', methods=['POST'])
@@ -83,7 +86,11 @@ def create_shortlink():
         logger.critical("Shortlink Error: Invalid Origin")
         abort(make_error_msg(403, "Not Allowed"))
     response_headers = base_response_headers
-    url = request.json.get('url', None)
+    try:
+        url = request.json.get('url', None)
+    except BadRequest:
+        logger.error("No Json Received as parameter")
+        abort(make_error_msg(400, "This service requires a json to be posted as a payload."))
     scheme = request.scheme
     domain = request.url_root.replace(
         scheme, ''
@@ -100,6 +107,7 @@ def create_shortlink():
             "shorturl": ''.join(base_response_url + add_item(table, url)), 'success': True
         })
     )
+    response.headers = response_headers
     response_headers['Access-Control-Allow-Origin'] = request.headers['origin']
     response_headers['Access-Control-Allow-Methods'] = 'POST, OPTION'
     response_headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization,' \
@@ -107,7 +115,6 @@ def create_shortlink():
     logger.info(
         "Shortlink Creation Successful. Returning the following response: %s", str(response)
     )
-    response.headers.set(response_headers)
     return response
 
 
@@ -166,5 +173,5 @@ def fetch_full_url_from_shortlink(shortened_url_id):
     url = fetch_url(table, shortened_url_id, request.url_root)
     logger.info("fetched the following url : %s", url)
     response = make_response(jsonify({'shorturl': shortened_url_id, 'full_url': url, 'success': True}))
-    response.headers.set(base_response_headers)
+    response.headers = base_response_headers
     return response
