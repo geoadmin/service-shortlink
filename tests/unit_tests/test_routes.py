@@ -132,8 +132,6 @@ class TestRoutes(unittest.TestCase):
             )
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.content_type, "application/json; charset=utf-8")
-            # as the shorturl won't be known beforehand, we are not trying to check if it's equal to something
-            # only if it looks like what we expect
             self.assertEqual(response.json.get('success'), True)
             shorturl = response.json.get('shorturl')
             self.assertEqual('http://localhost/redirect/' in shorturl, True)
@@ -230,7 +228,8 @@ class TestRoutes(unittest.TestCase):
             'success': False,
             'error': {
                 'code': 400,
-                'message': "The url given as parameter was too long. (limit is 2046 characters, 2946 given)"
+                'message': "The url given as parameter was too long. "
+                           "(limit is 2046 characters, 2946 given)"
             }
         })
 
