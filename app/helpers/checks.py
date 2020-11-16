@@ -117,4 +117,5 @@ def check_and_get_url_short(table, url):
     try:
         return response['Items'][0]['url_short']
     except IndexError:
+        logger.debug("The following url ( %s ) was not found in dynamodb", url)
         return None

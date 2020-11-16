@@ -46,7 +46,7 @@ def checker():
 
     :return: a simple json saying basically 'OK'
     """
-    logger.info("Checker route entered at %f", str(time.time()))
+    logger.debug("Checker route entered at %f", str(time.time()))
     response = make_response(jsonify({'success': True, 'message': 'OK'}), 200)
     response.headers = base_response_headers
     return response
@@ -80,10 +80,11 @@ def create_shortlink():
     :request: the request must contain a Origin Header, and a json payload with an url field
     :return: a json in response which contains the url which will redirect to the initial url
     """
-    logger.info("Shortlink Creation route entered at %f", time.time())
+    logger.debug("Shortlink Creation route entered at %f", time.time())
     if request.headers.get('Origin') is None or not \
             re.match(Config.allowed_domains_pattern, request.headers['Origin']):
-        logger.critical("Shortlink Error: Invalid Origin")
+        logger.critical("Shortlink Error: Invalid Origin. ( %s )",
+                        request.headers.get('Origin', 'No origin given'))
         abort(make_error_msg(403, "Not Allowed"))
     response_headers = base_response_headers
     try:
@@ -113,7 +114,8 @@ def create_shortlink():
     response_headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization,' \
                                                        ' x-requested-with, Origin, Accept'
     logger.info(
-        "Shortlink Creation Successful. Returning the following response: %s", str(response)
+        "Shortlink Creation Successful.",
+        extra={"response": response.json}
     )
     return response
 
@@ -143,7 +145,7 @@ def get_shortlink(url_id):
     :return: a redirection to the full url
     """
 
-    logger.info("Entry in redirection at %f with url_id %s", time.time(), url_id)
+    logger.debug("Entry in redirection at %f with url_id %s", time.time(), url_id)
     table = get_dynamodb_table()
     url = fetch_url(table, url_id, request.url_root)
     logger.info("redirecting to the following url : %s", url)
@@ -172,7 +174,7 @@ def fetch_full_url_from_shortlink(shortened_url_id):
     :param url_id: a short url id
     :return: a json with the full url
     """
-    logger.info("Entry in url fetch at %f with url_id %s", time.time(), shortened_url_id)
+    logger.debug("Entry in url fetch at %f with url_id %s", time.time(), shortened_url_id)
     table = get_dynamodb_table()
     url = fetch_url(table, shortened_url_id, request.url_root)
     logger.info("fetched the following url : %s", url)

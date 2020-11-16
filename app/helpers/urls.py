@@ -37,8 +37,8 @@ def create_url(table, url):
     :param url: the url we want to shorten
     :return: the shortened url id
     """
-    logger.info("Entry in create_url function")
-    logger.info(table)
+    logger.debug("Entry in create_url function")
+    logger.debug(table)
     try:
         # we create a magic number based on epoch for our shortened_url id
         # shortened_url = uuid.uuid5(uuid.NAMESPACE_URL, url).hex
