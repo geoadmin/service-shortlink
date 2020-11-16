@@ -152,7 +152,7 @@ def get_shortlink(shortlink_id):
     table = get_dynamodb_table()
     url = fetch_url(table, shortlink_id, request.url_root)
     logger.info("redirecting to the following url : %s", url)
-    return redirect(url)
+    return redirect(url, code=301)
 
 
 @app.route('/<shortlink_id>', methods=['GET'])

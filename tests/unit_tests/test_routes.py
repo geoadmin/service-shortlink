@@ -240,7 +240,7 @@ class TestRoutes(unittest.TestCase):
                     content_type="text/html",
                     headers={"Origin": "map.geo.admin.ch"}
                 )
-                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response.status_code, 301)
                 self.assertEqual(response.content_type, "text/html; charset=utf-8")
                 TestCase().assertRedirects(response, url)
 
