@@ -9,24 +9,16 @@ import logging.config
 import service_config
 from app import app
 from app.helpers import create_url
+from flask_testing import TestCase
 from moto import mock_dynamodb2
-from mock import Mock
 from mock import patch
 
-from service_config import Config
 app.config['allowed_hosts'] = service_config.Config.allowed_hosts
 app.config['allowed_domains'] = service_config.Config.allowed_domains
 
-from app.models.dynamo_db import get_dynamodb_table
-
 logger = logging.getLogger(__name__)
 
-"""
-    TODO :
-        1. Create fake dynamodb and populate it
-        2. Mock 'get_dynamodb()' call to return the fake db
-        3. for each call, 
-"""
+
 class TestRoutes(unittest.TestCase):
 
     @mock_dynamodb2
@@ -111,9 +103,6 @@ class TestRoutes(unittest.TestCase):
             uuid = (create_url(self.table, url))
             self.uuid_to_url_dict[uuid] = url
 
-    def prepare_mock(self, mock_get_dynamodb_table):
-        mock_get_dynamodb_table.get_dynamodb_table.return_value = self.__fake_get_dynamo_db()
-
     def __fake_get_dynamo_db(self):
         return self.table
 
@@ -143,7 +132,10 @@ class TestRoutes(unittest.TestCase):
             # as the shorturl won't be known beforehand, we are not trying to check if it's equal to something
             # only if it looks like what we expect
             self.assertEqual(response.json.get('success'), True)
-            self.assertEqual(re.search(r"^\d{10}$", response.json.get('shorturl')) is not None, True)
+            shorturl = response.json.get('shorturl')
+            self.assertEqual('http://localhost/redirect/' in shorturl, True)
+            shorturl = shorturl.replace('http://localhost/redirect/', '')
+            self.assertEqual(re.search(r"^\d{12}$", shorturl) is not None, True)
 
     """
     The following tests should all return a 400 error code
@@ -239,59 +231,82 @@ class TestRoutes(unittest.TestCase):
             }
         })
 
+    @mock_dynamodb2
     def test_redirect_shortlink_ok(self):
         self.setUp()
-        response = self.app.get(
-            f"/redirect/1578091241",
-            content_type="text/html",
-            headers={"Origin": "map.geo.admin.ch"}
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.content_type, "text/html")
-        self.assertEqual(response.url, "blabla")
+        import app.models.dynamo_db as dynamo_db
+        with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
+            for shortid, url in self.uuid_to_url_dict.items():
+                response = self.app.get(
+                    f"/redirect/{shortid}",
+                    content_type="text/html",
+                    headers={"Origin": "map.geo.admin.ch"}
+                )
+                self.assertEqual(response.status_code, 302)
+                self.assertEqual(response.content_type, "text/html; charset=utf-8")
+                TestCase().assertRedirects(response, url)
 
     # The following test will return a 404
+    @mock_dynamodb2
     def test_redirect_shortlink_url_not_found(self):
         self.setUp()
-        response = self.app.get(
-            f"/redirect/nonexistent",
-            content_type="text/html; charset=utf-8",
-            headers={"Origin": "map.geo.admin.ch"}
-        )
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.content_type, "text/html")
-        self.assertEqual(response.url, "blabla")
+        import app.models.dynamo_db as dynamo_db
+        with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
+            response = self.app.get(
+                f"/redirect/nonexistent",
+                content_type="text/html; charset=utf-8",
+                headers={"Origin": "map.geo.admin.ch"}
+            )
+            expected_json = {
+                'success': False,
+                'error': {
+                    'code': 404,
+                    'message': "This short url doesn't exist: http://localhost/nonexistent"
+                }
+            }
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.content_type, "application/json")
+            self.assertEqual(response.json, expected_json)
 
-    # The following test will return a 404
-    def fetch_full_url_from_shortlink_ok(self):
+    @mock_dynamodb2
+    def test_fetch_full_url_from_shortlink_ok(self):
         self.setUp()
-        response = self.app.get(
-            f"/1578091241",
-            content_type="application/json",
-            headers={"Origin": "map.geo.admin.ch"}
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content_type, "application/json; charset=utf-8")
-        self.assertEqual(response.json, {
-            'shorturl': "1578091241",
-            'full_url': "url",
-            'success': True
-        })
+        import app.models.dynamo_db as dynamo_db
+        with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
+            for shortid, url in self.uuid_to_url_dict.items():
+                response = self.app.get(
+                    f"/{shortid}",
+                    content_type="application/json",
+                    headers={"Origin": "map.geo.admin.ch"}
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.content_type, "application/json; charset=utf-8")
+                self.assertEqual(response.json, {
+                    'shorturl': shortid,
+                    'full_url': url,
+                    'success': True
+                })
 
+    @mock_dynamodb2
     def test_fetch_full_url_from_shortlink_url_not_found(self):
         self.setUp()
-        response = self.app.get(
-            f"/1578091241",
-            content_type="application/json",
-            headers={"Origin": "map.geo.admin.ch"}
-        )
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.content_type, "application/json; charset=utf-8")
-        self.assertEqual(response.json, {
-            'shorturl': "1578091241",
-            'full_url': "url",
-            'success': True
-        })
+        import app.models.dynamo_db as dynamo_db
+        with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
+            response = self.app.get(
+                f"/nonexistent",
+                content_type="application/json",
+                headers={"Origin": "map.geo.admin.ch"}
+            )
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.content_type, "application/json")
+            expected_json = {
+                'error': {
+                    'code': 404,
+                    'message': "This short url doesn't exist: http://localhost/nonexistent"
+                },
+                'success': False
+            }
+            self.assertEqual(response.json, expected_json)
 
 
 if __name__ == '__main__':
