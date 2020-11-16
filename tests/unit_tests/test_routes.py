@@ -1,3 +1,4 @@
+# pyling: disable=import-outside-toplevel
 import json
 import logging
 import logging.config
