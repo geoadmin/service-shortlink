@@ -1,17 +1,20 @@
 import json
-import re
-import unittest
-import os
-import boto3
 import logging
 import logging.config
+import re
+import os
+import unittest
 
-import service_config
-from app import app
-from app.helpers import create_url
+import boto3
+
 from flask_testing import TestCase
 from moto import mock_dynamodb2
 from mock import patch
+
+
+from app import app
+from app.helpers import create_url
+import service_config
 
 app.config['allowed_hosts'] = service_config.Config.allowed_hosts
 app.config['allowed_domains'] = service_config.Config.allowed_domains
