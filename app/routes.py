@@ -69,6 +69,7 @@ def create_shortlink():
 
     * Abortions originating in this function *
 
+    Abort with a 400 status code if we do not receive a json in the post payloadg
     Abort with a 403 status code if the Origin header is not set nor one we expect.
 
     * Abortions originating in functions called from this function *
@@ -119,12 +120,11 @@ def create_shortlink():
         "Shortlink Creation Successful.",
         extra={"response": json.loads(response.get_data())}
     )
-    print("hello")
     return response
 
 
-@app.route('/shortlinks/<url_id>', methods=['GET'])
-def get_shortlink(url_id):
+@app.route('/shortlinks/<shortlink_id>', methods=['GET'])
+def get_shortlink(shortlink_id):
     """
     * Quick summary of the function *
 
@@ -144,19 +144,19 @@ def get_shortlink(url_id):
 
     * Parameters and return values *
 
-    :param url_id: a short url id
+    :param shortlink_id: a short url id
     :return: a redirection to the full url
     """
 
-    logger.debug("Entry in redirection at %f with url_id %s", time.time(), url_id)
+    logger.debug("Entry in redirection at %f with url_id %s", time.time(), shortlink_id)
     table = get_dynamodb_table()
-    url = fetch_url(table, url_id, request.url_root)
+    url = fetch_url(table, shortlink_id, request.url_root)
     logger.info("redirecting to the following url : %s", url)
     return redirect(url)
 
 
-@app.route('/<shortened_url_id>', methods=['GET'])
-def fetch_full_url_from_shortlink(shortened_url_id):
+@app.route('/<shortlink_id>', methods=['GET'])
+def fetch_full_url_from_shortlink(shortlink_id):
     """
     * Quick summary of the function *
 
@@ -174,13 +174,13 @@ def fetch_full_url_from_shortlink(shortened_url_id):
 
     * Parameters and return values *
 
-    :param url_id: a short url id
+    :param shortlink_id: a short url id
     :return: a json with the full url
     """
-    logger.debug("Entry in url fetch at %f with url_id %s", time.time(), shortened_url_id)
+    logger.debug("Entry in url fetch at %f with url_id %s", time.time(), shortlink_id)
     table = get_dynamodb_table()
-    url = fetch_url(table, shortened_url_id, request.url_root)
+    url = fetch_url(table, shortlink_id, request.url_root)
     logger.info("fetched the following url : %s", url)
-    response = make_response(jsonify({'shorturl': shortened_url_id, 'full_url': url, 'success': True}))
+    response = make_response(jsonify({'shorturl': shortlink_id, 'full_url': url, 'success': True}))
     response.headers = base_response_headers
     return response
