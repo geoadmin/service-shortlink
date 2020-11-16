@@ -6,6 +6,7 @@ import os
 import boto3
 
 from moto import mock_dynamodb2
+from werkzeug.exceptions import HTTPException
 
 import service_config
 from app import app
@@ -14,7 +15,6 @@ from app.helpers.checks import check_and_get_url_short
 from app.helpers import add_item
 from app.helpers import create_url
 from app.helpers import fetch_url
-from werkzeug.exceptions import HTTPException
 logger = logging.getLogger(__name__)
 app.config['allowed_hosts'] = service_config.Config.allowed_hosts
 app.config['allowed_domains'] = service_config.Config.allowed_domains
