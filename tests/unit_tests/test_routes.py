@@ -122,7 +122,7 @@ class TestRoutes(unittest.TestCase):
     @mock_dynamodb2
     def test_create_shortlink_ok(self):
         self.setUp()
-        import app.models.dynamo_db as dynamo_db  # pyling: disable=import-outside-toplevel
+        import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
             response = self.app.post(
                 "/shorten",
@@ -236,7 +236,7 @@ class TestRoutes(unittest.TestCase):
     @mock_dynamodb2
     def test_redirect_shortlink_ok(self):
         self.setUp()
-        import app.models.dynamo_db as dynamo_db  # pyling: disable=import-outside-toplevel
+        import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
@@ -252,7 +252,7 @@ class TestRoutes(unittest.TestCase):
     @mock_dynamodb2
     def test_redirect_shortlink_url_not_found(self):
         self.setUp()
-        import app.models.dynamo_db as dynamo_db  # pyling: disable=import-outside-toplevel
+        import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
             response = self.app.get(
                 "/redirect/nonexistent",
@@ -273,7 +273,7 @@ class TestRoutes(unittest.TestCase):
     @mock_dynamodb2
     def test_fetch_full_url_from_shortlink_ok(self):
         self.setUp()
-        import app.models.dynamo_db as dynamo_db  # pyling: disable=import-outside-toplevel
+        import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
@@ -292,7 +292,7 @@ class TestRoutes(unittest.TestCase):
     @mock_dynamodb2
     def test_fetch_full_url_from_shortlink_url_not_found(self):
         self.setUp()
-        import app.models.dynamo_db as dynamo_db  # pyling: disable=import-outside-toplevel
+        import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
             response = self.app.get(
                 "/nonexistent",
