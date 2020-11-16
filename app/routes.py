@@ -7,6 +7,7 @@ from flask import jsonify
 from flask import make_response
 from flask import request
 from flask import redirect
+from werkzeug.exceptions import BadRequest
 
 from app import app
 from app.helpers import add_item
@@ -15,7 +16,6 @@ from app.helpers.checks import check_params
 from app.helpers.response_generation import make_error_msg
 from app.models.dynamo_db import get_dynamodb_table
 from service_config import Config
-from werkzeug.exceptions import BadRequest
 
 logger = logging.getLogger(__name__)
 
