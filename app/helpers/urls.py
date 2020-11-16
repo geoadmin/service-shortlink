@@ -2,7 +2,6 @@ import time
 import logging
 import logging.config
 import os
-import uuid
 import yaml
 import boto3.exceptions as boto3_exc
 from boto3.dynamodb.conditions import Key
