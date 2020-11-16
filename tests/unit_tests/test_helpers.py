@@ -103,7 +103,7 @@ class TestDynamoDb(unittest.TestCase):
             uuid = (create_url(self.table, url))
             self.uuid_to_url_dict[uuid] = url
 
-    def test_check_params_OK_http(self):
+    def test_check_params_ok_http(self):
         with app.app_context():
             base_path = check_params(scheme='http',
                                      host='api3.geo.admin.ch',
@@ -111,7 +111,7 @@ class TestDynamoDb(unittest.TestCase):
                                      base_path='/v4/shortlink')
             self.assertEqual(base_path, 'http://s.geo.admin.ch/')
 
-    def test_check_params_OK_https(self):
+    def test_check_params_ok_https(self):
         with app.app_context():
             base_path = check_params(scheme='https',
                                      host='api3.geo.admin.ch',
@@ -119,7 +119,7 @@ class TestDynamoDb(unittest.TestCase):
                                      base_path='/v4/shortlink')
             self.assertEqual(base_path, 'https://s.geo.admin.ch/')
 
-    def test_check_params_OK_non_standard_host(self):
+    def test_check_params_ok_non_standard_host(self):
         with app.app_context():
             base_path = check_params(scheme='https',
                                      host='service-shortlink.dev.bgdi.ch',
@@ -127,7 +127,7 @@ class TestDynamoDb(unittest.TestCase):
                                      base_path='/v4/shortlink')
             self.assertEqual(base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/redirect/')
 
-    def test_check_params_NOK_no_url(self):
+    def test_check_params_nok_no_url(self):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
                 check_params(scheme='https',
@@ -136,7 +136,7 @@ class TestDynamoDb(unittest.TestCase):
                              base_path='/v4/shortlink')
                 self.assertEqual(http_error.exception.code, 400)
 
-    def test_check_params_NOK_url_empty_string(self):
+    def test_check_params_nok_url_empty_string(self):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
                 check_params(scheme='https',
@@ -145,7 +145,7 @@ class TestDynamoDb(unittest.TestCase):
                              base_path='/v4/shortlink')
                 self.assertEqual(http_error.exception.code, 400)
 
-    def test_check_params_NOK_url_no_host(self):
+    def test_check_params_nok_url_no_host(self):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
                 check_params(scheme='https',
@@ -154,7 +154,7 @@ class TestDynamoDb(unittest.TestCase):
                              base_path='/v4/shortlink')
                 self.assertEqual(http_error.exception.code, 400)
 
-    def test_check_params_NOK_url_from_non_valid_domains_or_hostname(self):
+    def test_check_params_nok_url_from_non_valid_domains_or_hostname(self):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
                 check_params(scheme='https',
