@@ -145,42 +145,21 @@ def get_shortlink(shortlink_id):
     * Parameters and return values *
 
     :param shortlink_id: a short url id
-    :return: a redirection to the full url
+    :return: a redirection to the full url or a json with the full url
     """
-
-    logger.debug("Entry in redirection at %f with url_id %s", time.time(), shortlink_id)
+    logger.debug("Entry in shortlinks fetch at %f with url_id %s", time.time(), shortlink_id)
+    should_redirect = request.args.get('redirect', 'true')
+    logger.debug("Redirection is set to : %s ", str(should_redirect))
     table = get_dynamodb_table()
     url = fetch_url(table, shortlink_id, request.url_root)
-    logger.info("redirecting to the following url : %s", url)
-    return redirect(url, code=301)
-
-
-@app.route('/<shortlink_id>', methods=['GET'])
-def fetch_full_url_from_shortlink(shortlink_id):
-    """
-    * Quick summary of the function *
-
-    This route checks the shortened url id  and returns a json containing both the shortened url and
-    the full url
-
-    * Abortions originating in this function *
-
-    None
-
-    * Abortions originating in functions called from this function *
-
-    Abort with a 404 error from fetch_url
-    Abort with a 500 error from fetch_url
-
-    * Parameters and return values *
-
-    :param shortlink_id: a short url id
-    :return: a json with the full url
-    """
-    logger.debug("Entry in url fetch at %f with url_id %s", time.time(), shortlink_id)
-    table = get_dynamodb_table()
-    url = fetch_url(table, shortlink_id, request.url_root)
-    logger.info("fetched the following url : %s", url)
-    response = make_response(jsonify({'shorturl': shortlink_id, 'full_url': url, 'success': True}))
-    response.headers = base_response_headers
-    return response
+    if should_redirect == 'true':
+        logger.info("redirecting to the following url : %s", url)
+        return redirect(url, code=301)
+    elif should_redirect == 'false':
+        logger.info("fetched the following url : %s", url)
+        response = make_response(jsonify({'shorturl': shortlink_id, 'full_url': url, 'success': True}))
+        response.headers = base_response_headers
+        return response
+    else:
+        logger.error("redirect parameter set to a non accepted value : %s", should_redirect)
+        abort(make_error_msg(400, "accepted values for redirect parameter are true or false."))
