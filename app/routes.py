@@ -149,7 +149,7 @@ def get_shortlink(shortlink_id):
     """
     logger.debug("Entry in shortlinks fetch at %f with url_id %s", time.time(), shortlink_id)
     should_redirect = request.args.get('redirect', 'true')
-    if should_redirect != "true" and should_redirect != "false":
+    if should_redirect not in ("true", "false"):
         logger.error("redirect parameter set to a non accepted value : %s", should_redirect)
         abort(make_error_msg(400, "accepted values for redirect parameter are true or false."))
     logger.debug("Redirection is set to : %s ", str(should_redirect))
@@ -158,8 +158,7 @@ def get_shortlink(shortlink_id):
     if should_redirect == 'true':
         logger.info("redirecting to the following url : %s", url)
         return redirect(url, code=301)
-    else:
-        logger.info("fetched the following url : %s", url)
-        response = make_response(jsonify({'shorturl': shortlink_id, 'full_url': url, 'success': True}))
-        response.headers = base_response_headers
-        return response
+    logger.info("fetched the following url : %s", url)
+    response = make_response(jsonify({'shorturl': shortlink_id, 'full_url': url, 'success': True}))
+    response.headers = base_response_headers
+    return response
