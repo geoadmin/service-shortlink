@@ -8,7 +8,6 @@ import boto3
 from moto import mock_dynamodb2
 from werkzeug.exceptions import HTTPException
 
-import service_config
 from app import app
 from app.helpers.checks import check_params
 from app.helpers.checks import check_and_get_url_short
