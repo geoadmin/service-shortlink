@@ -39,7 +39,6 @@ def check_params(scheme, host, url, base_path):
     :param base_path: the reverse proxy paths in front of this service
     :return: the base url to reach the redirected url.
     """
-    print(url)
     if url is None:
         logger.error('No url given to shorten, exiting with a bad request')
         abort(make_error_msg(400, 'url parameter missing from request'))
@@ -73,8 +72,9 @@ def check_params(scheme, host, url, base_path):
         """
         This allows for compatibility with dev hosts or local builds for testing purpose.
         """
+        host = host.replace('://', '')  # We make sure here that the :// can't get duplicated in the shorturl
         base_url = ''.join(
-            (scheme, '://', host, base_path if 'localhost' not in host else '', '/redirect/')
+            (scheme, '://', host, base_path if 'localhost' not in host else '', 'redirect/')
         )
     else:
         base_url = ''.join((scheme, '://s.geo.admin.ch/'))
