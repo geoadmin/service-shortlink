@@ -12,9 +12,9 @@ import service_config
 from app import app
 from app.helpers.checks import check_params
 from app.helpers.checks import check_and_get_url_short
-from app.helpers import add_item
-from app.helpers import create_url
-from app.helpers import fetch_url
+from app.helpers.urls import add_item
+from app.helpers.urls import create_url
+from app.helpers.urls import fetch_url
 logger = logging.getLogger(__name__)
 app.config['allowed_hosts'] = service_config.Config.allowed_hosts
 app.config['allowed_domains'] = service_config.Config.allowed_domains

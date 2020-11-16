@@ -13,7 +13,7 @@ from mock import patch
 
 
 from app import app
-from app.helpers import create_url
+from app.helpers.urls import create_url
 import service_config
 
 app.config['allowed_hosts'] = service_config.Config.allowed_hosts
@@ -125,7 +125,7 @@ class TestRoutes(unittest.TestCase):
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
             response = self.app.post(
-                "/shorten",
+                "/shortlinks",
                 data=json.dumps({"url": "https://map.geo.admin.ch/test"}),
                 content_type="application/json",
                 headers={"Origin": "map.geo.admin.ch"}
@@ -144,7 +144,7 @@ class TestRoutes(unittest.TestCase):
     def test_create_shortlink_no_json(self):
         self.setUp()
         response = self.app.post(
-            "/shorten",
+            "/shortlinks",
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
         )
@@ -161,7 +161,7 @@ class TestRoutes(unittest.TestCase):
     def test_create_shortlink_no_url(self):
         self.setUp()
         response = self.app.post(
-            "/shorten",
+            "/shortlinks",
             data=json.dumps({}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
@@ -180,7 +180,7 @@ class TestRoutes(unittest.TestCase):
     def test_create_shortlink_no_hostname(self):
         self.setUp()
         response = self.app.post(
-            "/shorten",
+            "/shortlinks",
             data=json.dumps({"url": "/test"}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
@@ -198,7 +198,7 @@ class TestRoutes(unittest.TestCase):
     def test_create_shortlink_non_allowed_hostname_and_domain(self):
         self.setUp()
         response = self.app.post(
-            "/shorten",
+            "/shortlinks",
             data=json.dumps({"url": "https://not.a.valid.hostname.ch/test"}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
@@ -217,7 +217,7 @@ class TestRoutes(unittest.TestCase):
         self.setUp()
         url = "https://map.geo.admin.ch/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/" # pylint: disable=line-too-long
         response = self.app.post(
-            "/shorten",
+            "/shortlinks",
             data=json.dumps({"url": url}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}

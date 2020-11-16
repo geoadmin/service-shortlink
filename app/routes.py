@@ -10,8 +10,8 @@ from flask import redirect
 from werkzeug.exceptions import BadRequest
 
 from app import app
-from app.helpers import add_item
-from app.helpers import fetch_url
+from app.helpers.urls import add_item
+from app.helpers.urls import fetch_url
 from app.helpers.checks import check_params
 from app.helpers.response_generation import make_error_msg
 from app.models.dynamo_db import get_dynamodb_table
@@ -52,7 +52,7 @@ def checker():
     return response
 
 
-@app.route('/shorten', methods=['POST'])
+@app.route('/shortlinks', methods=['POST'])
 def create_shortlink():
     """
     * Quick summary of the function *
@@ -118,12 +118,15 @@ def create_shortlink():
     return response
 
 
-@app.route('/redirect/<url_id>', methods=['GET'])
-def redirect_shortlink(url_id):
+@app.route('/shortlinks/<url_id>', methods=['GET'])
+def get_shortlink(url_id):
     """
     * Quick summary of the function *
 
     This route checks the shortened url id  and redirect the user to the full url
+    if the redirect parameter is set. If that's not the case,
+    it will return a json containing the informations
+    about the url
 
     * Abortions originating in this function *
 
@@ -139,6 +142,7 @@ def redirect_shortlink(url_id):
     :param url_id: a short url id
     :return: a redirection to the full url
     """
+
     logger.info("Entry in redirection at %f with url_id %s", time.time(), url_id)
     table = get_dynamodb_table()
     url = fetch_url(table, url_id, request.url_root)
