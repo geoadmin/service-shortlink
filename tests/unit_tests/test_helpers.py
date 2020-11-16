@@ -16,8 +16,6 @@ from app.helpers.urls import add_item
 from app.helpers.urls import create_url
 from app.helpers.urls import fetch_url
 logger = logging.getLogger(__name__)
-app.config['allowed_hosts'] = service_config.Config.allowed_hosts
-app.config['allowed_domains'] = service_config.Config.allowed_domains
 
 
 class TestDynamoDb(unittest.TestCase):

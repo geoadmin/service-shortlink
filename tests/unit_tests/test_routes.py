@@ -14,10 +14,6 @@ from mock import patch
 
 from app import app
 from app.helpers.urls import create_url
-import service_config
-
-app.config['allowed_hosts'] = service_config.Config.allowed_hosts
-app.config['allowed_domains'] = service_config.Config.allowed_domains
 
 logger = logging.getLogger(__name__)
 
@@ -240,7 +236,7 @@ class TestRoutes(unittest.TestCase):
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
-                    f"/redirect/{shortid}",
+                    f"/shortlinks/{shortid}",
                     content_type="text/html",
                     headers={"Origin": "map.geo.admin.ch"}
                 )
@@ -255,7 +251,7 @@ class TestRoutes(unittest.TestCase):
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
             response = self.app.get(
-                "/redirect/nonexistent",
+                "/shortlinks/nonexistent",
                 content_type="text/html; charset=utf-8",
                 headers={"Origin": "map.geo.admin.ch"}
             )

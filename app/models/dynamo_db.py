@@ -3,9 +3,9 @@ import logging.config
 import boto3
 import boto3.exceptions as boto3_exc
 from flask import abort
-from app import app
 from app.helpers.response_generation import make_error_msg
-config = app.config
+from service_config import aws_region
+from service_config import aws_table_name
 logger = logging.getLogger(__name__)
 
 
@@ -31,8 +31,8 @@ dynamodb_connection = DynamodbConnection()
 
 
 def get_dynamodb_table():
-    table_name = config.get('aws_table_name', 'shorturl')
-    region = config.get('aws_region', 'eu-central-1')
+    table_name = aws_table_name
+    region = aws_region
     dyn = dynamodb_connection
     dyn.region = region
     conn = dyn.get()

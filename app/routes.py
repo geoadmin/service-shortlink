@@ -1,3 +1,4 @@
+import json
 import re
 import logging
 import time
@@ -15,7 +16,7 @@ from app.helpers.urls import fetch_url
 from app.helpers.checks import check_params
 from app.helpers.response_generation import make_error_msg
 from app.models.dynamo_db import get_dynamodb_table
-from service_config import Config
+from service_config import allowed_domains_pattern
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +83,7 @@ def create_shortlink():
     """
     logger.debug("Shortlink Creation route entered at %f", time.time())
     if request.headers.get('Origin') is None or not \
-            re.match(Config.allowed_domains_pattern, request.headers['Origin']):
+            re.match(allowed_domains_pattern, request.headers['Origin']):
         logger.critical("Shortlink Error: Invalid Origin. ( %s )",
                         request.headers.get('Origin', 'No origin given'))
         abort(make_error_msg(403, "Not Allowed"))
@@ -113,10 +114,12 @@ def create_shortlink():
     response_headers['Access-Control-Allow-Methods'] = 'POST, OPTION'
     response_headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization,' \
                                                        ' x-requested-with, Origin, Accept'
+
     logger.info(
         "Shortlink Creation Successful.",
-        extra={"response": response.json}
+        extra={"response": json.loads(response.get_data())}
     )
+    print("hello")
     return response
 
 
