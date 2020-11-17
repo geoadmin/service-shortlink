@@ -148,7 +148,7 @@ def get_shortlink(shortlink_id):
     :return: a redirection to the full url or a json with the full url
     """
     logger.debug("Entry in shortlinks fetch at %f with url_id %s", time.time(), shortlink_id)
-    should_redirect = request.args.get('redirect', 'true')
+    should_redirect = request.args.get('redirect', 'false')
     if should_redirect not in ("true", "false"):
         logger.error("redirect parameter set to a non accepted value : %s", should_redirect)
         abort(make_error_msg(400, "accepted values for redirect parameter are true or false."))

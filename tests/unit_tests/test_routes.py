@@ -236,21 +236,6 @@ class TestRoutes(unittest.TestCase):
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
-                    f"/shortlinks/{shortid}",
-                    content_type="text/html",
-                    headers={"Origin": "map.geo.admin.ch"}
-                )
-                self.assertEqual(response.status_code, 301)
-                self.assertEqual(response.content_type, "text/html; charset=utf-8")
-                TestCase().assertRedirects(response, url)
-
-    @mock_dynamodb2
-    def test_redirect_shortlink_ok_explicit_parameter(self):
-        self.setUp()
-        import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
-        with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
-            for shortid, url in self.uuid_to_url_dict.items():
-                response = self.app.get(
                     f"/shortlinks/{shortid}?redirect=true",
                     content_type="text/html",
                     headers={"Origin": "map.geo.admin.ch"}
@@ -305,6 +290,25 @@ class TestRoutes(unittest.TestCase):
 
     @mock_dynamodb2
     def test_fetch_full_url_from_shortlink_ok(self):
+        self.setUp()
+        import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
+        with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
+            for shortid, url in self.uuid_to_url_dict.items():
+                response = self.app.get(
+                    f"/shortlinks/{shortid}",
+                    content_type="application/json",
+                    headers={"Origin": "map.geo.admin.ch"}
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.content_type, "application/json; charset=utf-8")
+                self.assertEqual(response.json, {
+                    'shorturl': shortid,
+                    'full_url': url,
+                    'success': True
+                })
+
+    @mock_dynamodb2
+    def test_fetch_full_url_from_shortlink_ok_explicit_parameter(self):
         self.setUp()
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()):
