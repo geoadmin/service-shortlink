@@ -140,3 +140,7 @@ The service is configured by Environment Variable:
 | AWS_SECRET_ACCESS_KEY | None | AWS_SECRET_ACCESS_KEY                      |
 | AWS_SECURITY_TOKEN | None | AWS_SECURITY_TOKEN                            |
 | AWS_SESSION_TOKEN | None | AWS_SESSION_TOKEN                              |
+| ALLOWED_DOMAINS | 'admin.ch,swisstopo.ch,bgdi.ch' | A comma separated list of allowed domains names |
+| ALLOWED_HOSTS | 'api.geo.admin.ch,api3.geo.admin.ch' | a comma separated list of allowed hostnames |
+| AWS_DYNAMODB_TABLE_NAME | 'shorturl' | The dynamodb table name |
+| AWS_DYNAMODB_TABLE_REGION | 'eu-central-1' | The AWS region in which the table is hosted. |
