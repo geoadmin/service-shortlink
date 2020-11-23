@@ -117,7 +117,6 @@ def add_item(table, url):
 
     * abortions originating in functions called from this function *
 
-    Abort with a 400 status code from create_url
     Abort with a 500 status code from get_dynamodb_table or create_url
 
     * parameters and expected output *
