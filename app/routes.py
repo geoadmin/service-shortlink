@@ -74,7 +74,7 @@ def create_shortlink():
 
     * Abortions originating in functions called from this function *
 
-    Abort with a 400 status code from check_params, add_item
+    Abort with a 400 status code from check_params
     Abort with a 500 status code from add_item
 
     * Parameters and return values *
@@ -139,6 +139,7 @@ def get_shortlink(shortlink_id):
 
     * Abortions originating in functions called from this function *
 
+    Abort with a 400 error if the redirect parameter is set to a fantasist value
     Abort with a 404 error from fetch_url
     Abort with a 500 error from fetch_url
 
