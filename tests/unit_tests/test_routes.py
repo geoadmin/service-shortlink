@@ -49,14 +49,14 @@ class TestRoutes(unittest.TestCase):
                     'AttributeType': 'S'
                 },
                 {
-                    'AttributeName': 'url_short',
+                    'AttributeName': 'shortlinks_id',
                     'AttributeType': 'S'
                 }
 
             ],
             KeySchema=[
                 {
-                    'AttributeName': 'url_short',
+                    'AttributeName': 'shortlinks_id',
                     'KeyType': 'HASH'
                 },
                 {
@@ -75,14 +75,14 @@ class TestRoutes(unittest.TestCase):
                     ],
                     'Projection': {
                         'ProjectionType': 'INCLUDE',
-                        'NonKeyAttributes': ['url_short']
+                        'NonKeyAttributes': ['shortlinks_id']
                     }
                 },
                 {
-                    'IndexName': 'shortlinkID',
+                    'IndexName': 'ShortlinksIndex',
                     'KeySchema': [
                         {
-                            'AttributeName': 'url_short',
+                            'AttributeName': 'shortlinks_id',
                             'KeyType': 'HASH'
                         }
                     ],

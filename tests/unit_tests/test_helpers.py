@@ -10,7 +10,7 @@ from werkzeug.exceptions import HTTPException
 
 from app import app
 from app.helpers.checks import check_params
-from app.helpers.checks import check_and_get_url_short
+from app.helpers.checks import check_and_get_shortlinks_id
 from app.helpers.urls import add_item
 from app.helpers.urls import create_url
 from app.helpers.urls import fetch_url
@@ -47,14 +47,14 @@ class TestDynamoDb(unittest.TestCase):
                         'AttributeType': 'S'
                     },
                     {
-                        'AttributeName': 'url_short',
+                        'AttributeName': 'shortlinks_id',
                         'AttributeType': 'S'
                     }
 
                 ],
             KeySchema=[
                 {
-                        'AttributeName': 'url_short',
+                        'AttributeName': 'shortlinks_id',
                         'KeyType': 'HASH'
                     },
                 {
@@ -73,14 +73,14 @@ class TestDynamoDb(unittest.TestCase):
                         ],
                         'Projection': {
                             'ProjectionType': 'INCLUDE',
-                            'NonKeyAttributes': ['url_short']
+                            'NonKeyAttributes': ['shortlinks_id']
                         }
                     },
                     {
-                        'IndexName': 'shortlinkID',
+                        'IndexName': 'ShortlinksIndex',
                         'KeySchema': [
                             {
-                                'AttributeName': 'url_short',
+                                'AttributeName': 'shortlinks_id',
                                 'KeyType': 'HASH'
                             }
                         ],
@@ -175,15 +175,15 @@ class TestDynamoDb(unittest.TestCase):
                 self.assertEqual(http_error.exception.code, 400)
 
     @mock_dynamodb2
-    def test_check_and_get_url_short(self):
+    def test_check_and_get_shortlinks_id(self):
         self.setup()
         for uuid, url in self.uuid_to_url_dict.items():
-            self.assertEqual(check_and_get_url_short(self.table, url), uuid)
+            self.assertEqual(check_and_get_shortlinks_id(self.table, url), uuid)
 
     @mock_dynamodb2
-    def test_check_and_get_url_short_non_existent(self):
+    def test_check_and_get_shortlinks_id_non_existent(self):
         self.setup()
-        self.assertEqual(check_and_get_url_short(self.table, "http://non.existent.url.ch"), None)
+        self.assertEqual(check_and_get_shortlinks_id(self.table, "http://non.existent.url.ch"), None)
 
     @mock_dynamodb2
     def test_add_item(self):
