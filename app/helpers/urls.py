@@ -7,7 +7,7 @@ import boto3.exceptions as boto3_exc
 from boto3.dynamodb.conditions import Key
 from flask import abort
 
-from app.helpers.checks import check_and_get_url_short
+from app.helpers.checks import check_and_get_shortlinks_id
 from app.helpers.response_generation import make_error_msg
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def create_url(table, url):
         now = time.localtime()
         table.put_item(
             Item={
-                'url_short': shortened_url,
+                'shortlinks_id': shortened_url,
                 'url': url,
                 'timestamp': time.strftime('%Y-%m-%d %X', now),
                 'epoch': str(time.gmtime())
@@ -89,7 +89,7 @@ def fetch_url(table, url_id, url_root):
 
     try:
         response = table.query(
-            IndexName='shortlinkID', KeyConditionExpression=Key('url_short').eq(url_id)
+            IndexName='ShortlinksIndex', KeyConditionExpression=Key('shortlinks_id').eq(url_id)
         )
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
 
@@ -125,7 +125,7 @@ def add_item(table, url):
     :param url: the url we want to shorten
     :return: the shortened url id
     """
-    shortened_url = check_and_get_url_short(table, url)
+    shortened_url = check_and_get_shortlinks_id(table, url)
     if shortened_url is None:
         shortened_url = create_url(table, url)
     return shortened_url

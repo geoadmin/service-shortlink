@@ -87,7 +87,7 @@ def check_params(scheme, host, url, base_path):
     return base_url
 
 
-def check_and_get_url_short(table, url):
+def check_and_get_shortlinks_id(table, url):
     """
     * Quick summary of the function *
 
@@ -114,7 +114,7 @@ def check_and_get_url_short(table, url):
         KeyConditionExpression=Key('url').eq(url),
     )
     try:
-        return response['Items'][0]['url_short']
+        return response['Items'][0]['shortlinks_id']
     except IndexError:
         logger.debug("The following url ( %s ) was not found in dynamodb", url)
         return None
