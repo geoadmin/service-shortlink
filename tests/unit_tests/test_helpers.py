@@ -40,7 +40,7 @@ class TestDynamoDb(unittest.TestCase):
         self.connection = boto3.resource('dynamodb', region)
         logger.warning("Right before table creation")
         self.connection.create_table(
-            TableName='shorturl',
+            TableName='shortlinks_test',
             AttributeDefinitions=[
                     {
                         'AttributeName': 'url',
@@ -95,7 +95,7 @@ class TestDynamoDb(unittest.TestCase):
                     'WriteCapacityUnits': 123
                 }
         )
-        self.table = self.connection.Table('shorturl')
+        self.table = self.connection.Table('shortlinks_test')
         for url in self.valid_urls_list:
             uuid = (create_url(self.table, url))
             self.uuid_to_url_dict[uuid] = url
