@@ -1,6 +1,18 @@
 import os
-from gunicorn.app.base import BaseApplication
-from app import app as application
+"""
+    The gevent monkey import and patch suppress a warning, and a potential problem.
+    Gunicorn would call it anyway, but if it tries to call it after the ssl module
+    has been initialised in another module (like, in our code, by the botocore library),
+    then it could lead to inconcistencies in how the ssl module is used. Thus we patch
+    the ssl module through gevent.monkey.patch_all before any other import, especially
+    the app import, which would cause the boto module to be loaded, which would in turn
+    load the ssl module.
+"""
+import gevent.monkey # pylint: disable=wrong-import-position
+
+gevent.monkey.patch_all()
+from gunicorn.app.base import BaseApplication  # pylint: disable=wrong-import-position
+from app import app as application  # pylint: disable=wrong-import-position
 
 
 class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method
