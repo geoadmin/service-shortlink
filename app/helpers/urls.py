@@ -49,15 +49,11 @@ def create_url(table, url):
                 'epoch': str(time.gmtime())
             }
         )
-        logger.info(
-            "Exit create_url function with shortened url --> %s", shortened_url
-        )
+        logger.info("Exit create_url function with shortened url --> %s", shortened_url)
         return shortened_url
     # Those are internal server error: error code 500
     except boto3_exc.Boto3Error as error:
-        logger.error(
-            "Internal error while writing in dynamodb. Error message is %s", str(error)
-        )
+        logger.error("Internal error while writing in dynamodb. Error message is %s", str(error))
         abort(make_error_msg(500, f"Write units exceeded: {str(error)}"))
 
 
@@ -94,9 +90,7 @@ def fetch_url(table, url_id, url_root):
         url = response['Items'][0]['url'] if len(response['Items']) > 0 else None
 
     except boto3_exc.Boto3Error as error:  # pragma: no cover
-        logger.error(
-            "Internal Error while reading in dynamodb. Error message is %s", str(error)
-        )
+        logger.error("Internal Error while reading in dynamodb. Error message is %s", str(error))
         abort(make_error_msg(500, f'Unexpected internal server error: {str(error)}'))
     if url is None:
         logger.error("The Shortlink %s was not found in dynamodb.", url_id)

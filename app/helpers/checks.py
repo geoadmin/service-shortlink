@@ -71,15 +71,10 @@ def check_params(scheme, host, url, base_path):
         """
         This allows for compatibility with dev hosts or local builds for testing purpose.
         """
-        host = host.replace('://', '')  # We make sure here that the :// can't get duplicated in the shorturl
-        base_url = ''.join(
-            (
-                scheme,
-                '://',
-                host,
-                base_path if 'localhost' not in host else ''
-            )
-        )
+        host = host.replace(
+            '://', ''
+        )  # We make sure here that the :// can't get duplicated in the shorturl
+        base_url = ''.join((scheme, '://', host, base_path if 'localhost' not in host else ''))
         base_url = ''.join((base_url, 'redirect/' if base_url.endswith('/') else '/redirect/'))
     else:
         base_url = ''.join((scheme, '://s.geo.admin.ch/'))

@@ -85,8 +85,10 @@ def create_shortlink():
     logger.debug("Shortlink Creation route entered at %f", time.time())
     if request.headers.get('Origin') is None or not \
             re.match(allowed_domains_pattern, request.headers['Origin']):
-        logger.critical("Shortlink Error: Invalid Origin. ( %s )",
-                        request.headers.get('Origin', 'No origin given'))
+        logger.critical(
+            "Shortlink Error: Invalid Origin. ( %s )",
+            request.headers.get('Origin', 'No origin given')
+        )
         abort(make_error_msg(403, "Not Allowed"))
     response_headers = base_response_headers
     try:
@@ -101,7 +103,10 @@ def create_shortlink():
     base_path = request.script_root
     logger.debug(
         "params received are : url: %s, scheme: %s, domain: %s, base_path: %s",
-        url, scheme, domain, base_path
+        url,
+        scheme,
+        domain,
+        base_path
     )
     base_response_url = check_params(scheme, domain, url, base_path)
     table = get_dynamodb_table()
@@ -117,8 +122,7 @@ def create_shortlink():
                                                        ' x-requested-with, Origin, Accept'
 
     logger.info(
-        "Shortlink Creation Successful.",
-        extra={"response": json.loads(response.get_data())}
+        "Shortlink Creation Successful.", extra={"response": json.loads(response.get_data())}
     )
     return response
 
