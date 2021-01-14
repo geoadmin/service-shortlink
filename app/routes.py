@@ -94,7 +94,7 @@ def create_shortlink():
     try:
         # Sometimes, the json parameter would be interpreted as a string, sometimes as a dict.
         # We ensure we get what we want out of this parameter.
-        if type(request.json) == str:
+        if isinstance(request.json, str):
             url = json.loads(request.json).get('url', None)
         else:
             url = request.json.get('url', None)
