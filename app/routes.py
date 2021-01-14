@@ -101,6 +101,9 @@ def create_shortlink():
     except BadRequest:
         logger.error("No Json Received as parameter")
         abort(make_error_msg(400, "This service requires a json to be posted as a payload."))
+    except json.decoder.JSONDecodeError:
+        logger.error("Invalid Json Received as parameter")
+        abort(make_error_msg(400, "The json received was malformed and could not be interpreted as a json."))
     scheme = request.scheme
     domain = request.url_root.replace(
         scheme, ''
