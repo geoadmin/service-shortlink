@@ -167,7 +167,7 @@ def get_shortlink(shortlink_id):
         abort(make_error_msg(400, "accepted values for redirect parameter are true or false."))
     logger.debug("Redirection is set to : %s ", str(should_redirect))
     table = get_dynamodb_table()
-    url = fetch_url(table, shortlink_id, request.url_root)
+    url = fetch_url(table, shortlink_id, request.base_url)
     if should_redirect == 'true':
         logger.info("redirecting to the following url : %s", url)
         return redirect(url, code=301)

@@ -57,7 +57,7 @@ def create_url(table, url):
         abort(make_error_msg(500, f"Write units exceeded: {str(error)}"))
 
 
-def fetch_url(table, url_id, url_root):
+def fetch_url(table, url_id, base_url):
     """
     * Quick summary of the function *
 
@@ -76,8 +76,8 @@ def fetch_url(table, url_id, url_root):
 
     :param table: DynamoDb Table object
     :param url_id: String, a shortened url to be compared against indexes in DynamoDB
-    :param url_root: String, the base url of the service. For example, in dev, it would be
-    https://service-shortlink.dev.bgdi.ch/
+    :param base_url: String, the receiver url of the service. For example, in dev, it would be
+    https://service-shortlink.dev.bgdi.ch/shortlinks/<shortlink_id>
     :return url: the full url corresponding to the url_id in DynamoDB
     """
 
@@ -94,7 +94,7 @@ def fetch_url(table, url_id, url_root):
         abort(make_error_msg(500, f'Unexpected internal server error: {str(error)}'))
     if url is None:
         logger.error("The Shortlink %s was not found in dynamodb.", url_id)
-        abort(make_error_msg(404, f'This short url doesn\'t exist: {url_root}{str(url_id)}'))
+        abort(make_error_msg(404, f'This short url doesn\'t exist: {base_url}'))
     return url
 
 

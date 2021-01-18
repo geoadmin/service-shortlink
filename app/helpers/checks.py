@@ -75,7 +75,7 @@ def check_params(scheme, host, url, base_path):
             '://', ''
         )  # We make sure here that the :// can't get duplicated in the shorturl
         base_url = ''.join((scheme, '://', host, base_path if 'localhost' not in host else ''))
-        base_url = ''.join((base_url, 'redirect/' if base_url.endswith('/') else '/redirect/'))
+        base_url = ''.join((base_url, 'shortlinks/' if base_url.endswith('/') else '/shortlinks/'))
     else:
         base_url = ''.join((scheme, '://s.geo.admin.ch/'))
 
