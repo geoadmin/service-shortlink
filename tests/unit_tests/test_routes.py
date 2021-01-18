@@ -130,8 +130,8 @@ class TestRoutes(unittest.TestCase):
             self.assertEqual(response.content_type, "application/json; charset=utf-8")
             self.assertEqual(response.json.get('success'), True)
             shorturl = response.json.get('shorturl')
-            self.assertEqual('http://localhost/redirect/' in shorturl, True)
-            shorturl = shorturl.replace('http://localhost/redirect/', '')
+            self.assertEqual('http://localhost/shortlinks/' in shorturl, True)
+            shorturl = shorturl.replace('http://localhost/shortlinks/', '')
             self.assertEqual(re.search(r"^\d{12}$", shorturl) is not None, True)
 
     """
@@ -281,7 +281,7 @@ class TestRoutes(unittest.TestCase):
                 'success': False,
                 'error': {
                     'code': 404,
-                    'message': "This short url doesn't exist: http://localhost/nonexistent"
+                    'message': "This short url doesn't exist: http://localhost/shortlinks/nonexistent"
                 }
             }
             self.assertEqual(response.status_code, 404)
@@ -341,7 +341,7 @@ class TestRoutes(unittest.TestCase):
             expected_json = {
                 'error': {
                     'code': 404,
-                    'message': "This short url doesn't exist: http://localhost/nonexistent"
+                    'message': "This short url doesn't exist: http://localhost/shortlinks/nonexistent"
                 },
                 'success': False
             }

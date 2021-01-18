@@ -122,7 +122,7 @@ class TestDynamoDb(unittest.TestCase):
                                      host='service-shortlink.dev.bgdi.ch',
                                      url='https://map.geo.admin.ch/enclume',
                                      base_path='/v4/shortlink')
-            self.assertEqual(base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/redirect/')
+            self.assertEqual(base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/shortlinks/')
 
     def test_check_params_nok_no_url(self):
         with app.app_context():
