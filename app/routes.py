@@ -92,12 +92,7 @@ def create_shortlink():
         abort(make_error_msg(403, "Not Allowed"))
     response_headers = base_response_headers
     try:
-        # Sometimes, the json parameter would be interpreted as a string, sometimes as a dict.
-        # We ensure we get what we want out of this parameter.
-        if isinstance(request.json, str):
-            url = json.loads(request.json).get('url', None)
-        else:
-            url = request.json.get('url', None)
+        url = request.json.get('url', None)
     except BadRequest:
         logger.error("No Json Received as parameter")
         abort(make_error_msg(400, "This service requires a json to be posted as a payload."))
