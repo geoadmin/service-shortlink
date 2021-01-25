@@ -42,41 +42,34 @@ class TestRoutes(unittest.TestCase):
         self.connection = boto3.resource('dynamodb', region)
         self.connection.create_table(
             TableName='shortlinks_test',
-            AttributeDefinitions=[
-                {
-                    'AttributeName': 'url', 'AttributeType': 'S'
-                }, {
-                    'AttributeName': 'shortlinks_id', 'AttributeType': 'S'
-                }
-            ],
-            KeySchema=[
-                {
-                    'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
-                }, {
+            AttributeDefinitions=[{
+                'AttributeName': 'url', 'AttributeType': 'S'
+            }, {
+                'AttributeName': 'shortlinks_id', 'AttributeType': 'S'
+            }],
+            KeySchema=[{
+                'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
+            }, {
+                'AttributeName': 'url', 'KeyType': 'HASH'
+            }],
+            LocalSecondaryIndexes=[{
+                'IndexName': 'UrlIndex',
+                'KeySchema': [{
                     'AttributeName': 'url', 'KeyType': 'HASH'
+                }],
+                'Projection': {
+                    'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['shortlinks_id']
                 }
-            ],
-            LocalSecondaryIndexes=[
-                {
-                    'IndexName': 'UrlIndex',
-                    'KeySchema': [{
-                        'AttributeName': 'url', 'KeyType': 'HASH'
-                    }],
-                    'Projection':
-                        {
-                            'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['shortlinks_id']
-                        }
-                },
-                {
-                    'IndexName': 'ShortlinksIndex',
-                    'KeySchema': [{
-                        'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
-                    }],
-                    'Projection': {
-                        'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['url']
-                    }
-                }
-            ],
+            },
+                                   {
+                                       'IndexName': 'ShortlinksIndex',
+                                       'KeySchema': [{
+                                           'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
+                                       }],
+                                       'Projection': {
+                                           'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['url']
+                                       }
+                                   }],
             ProvisionedThroughput={
                 'ReadCapacityUnits': 123, 'WriteCapacityUnits': 123
             }
@@ -129,17 +122,13 @@ class TestRoutes(unittest.TestCase):
         )
         self.assertEqual(400, response.status_code)
         self.assertEqual("application/json", response.content_type)
-        self.assertEqual(
-            {
-                'success': False,
-                'error':
-                    {
-                        'code': 400,
-                        'message': 'This service requires a json to be posted as a payload.'
-                    }
-            },
-            response.json
-        )
+        self.assertEqual({
+            'success': False,
+            'error': {
+                'code': 400, 'message': 'This service requires a json to be posted as a payload.'
+            }
+        },
+                         response.json)
 
     def test_create_shortlink_no_url(self):
         self.setUp()
@@ -151,15 +140,13 @@ class TestRoutes(unittest.TestCase):
         )
         self.assertEqual(400, response.status_code)
         self.assertEqual("application/json", response.content_type)
-        self.assertEqual(
-            {
-                'success': False,
-                'error': {
-                    'code': 400, 'message': 'url parameter missing from request'
-                }
-            },
-            response.json
-        )
+        self.assertEqual({
+            'success': False,
+            'error': {
+                'code': 400, 'message': 'url parameter missing from request'
+            }
+        },
+                         response.json)
 
     def test_create_shortlink_no_hostname(self):
         self.setUp()
@@ -195,11 +182,10 @@ class TestRoutes(unittest.TestCase):
             response.json,
             {
                 'success': False,
-                'error':
-                    {
-                        'code': 400,
-                        'message': 'Neither Host nor Domain in the url parameter are valid'
-                    }
+                'error': {
+                    'code': 400,
+                    'message': 'Neither Host nor Domain in the url parameter are valid'
+                }
             }
         )
 
@@ -218,13 +204,12 @@ class TestRoutes(unittest.TestCase):
             response.json,
             {
                 'success': False,
-                'error':
-                    {
-                        'code': 400,
-                        'message':
-                            "The url given as parameter was too long. "
-                            "(limit is 2046 characters, 2946 given)"
-                    }
+                'error': {
+                    'code': 400,
+                    'message':
+                        "The url given as parameter was too long. "
+                        "(limit is 2046 characters, 2946 given)"
+                }
             }
         )
 
@@ -260,11 +245,10 @@ class TestRoutes(unittest.TestCase):
                 )
                 expected_json = {
                     'success': False,
-                    'error':
-                        {
-                            'code': 400,
-                            'message': "accepted values for redirect parameter are true or false."
-                        }
+                    'error': {
+                        'code': 400,
+                        'message': "accepted values for redirect parameter are true or false."
+                    }
                 }
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(response.content_type, "application/json")
@@ -285,13 +269,11 @@ class TestRoutes(unittest.TestCase):
             )
             expected_json = {
                 'success': False,
-                'error':
-                    {
-                        'code':
-                            404,
-                        'message':
-                            "This short url doesn't exist: http://localhost/shortlinks/nonexistent"
-                    }
+                'error': {
+                    'code': 404,
+                    'message':
+                        "This short url doesn't exist: http://localhost/shortlinks/nonexistent"
+                }
             }
             self.assertEqual(response.status_code, 404)
             self.assertEqual(response.content_type, "application/json")
@@ -354,13 +336,11 @@ class TestRoutes(unittest.TestCase):
             self.assertEqual(response.status_code, 404)
             self.assertEqual(response.content_type, "application/json")
             expected_json = {
-                'error':
-                    {
-                        'code':
-                            404,
-                        'message':
-                            "This short url doesn't exist: http://localhost/shortlinks/nonexistent"
-                    },
+                'error': {
+                    'code': 404,
+                    'message':
+                        "This short url doesn't exist: http://localhost/shortlinks/nonexistent"
+                },
                 'success': False
             }
             self.assertEqual(response.json, expected_json)

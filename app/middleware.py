@@ -1,3 +1,7 @@
+import logging
+logger = logging.getLogger(__name__)
+
+
 class ReverseProxies(object):
     """
     Reverse proxies can cause some problems within applications, as they change routes, redirect
@@ -35,20 +39,26 @@ class ReverseProxies(object):
         SCRIPT_NAME is used to prefix the routes so that the application returns a correct answer
         (namely: that the query was hitting /generic_name/generate).
         """
+        logger.debug("New request in middleware")
         # The syntax here means : try to get HTTP_X_SCRIPT_NAME, or get me an empty string, and the
         # command or, in the context of a string, returns the first "true" value
         script_name = environ.get('HTTP_X_SCRIPT_NAME', '') or self.script_name
+        logger.debug("script name is %s", script_name)
         if script_name:
             environ['SCRIPT_NAME'] = script_name
             path_info = environ['PATH_INFO']
+            logger.debug("path info is %s", path_info)
             if path_info.startswith(script_name):
                 environ['PATH_INFO'] = path_info[len(script_name):]
         # The scheme is the protocol used (http/s) to connect to the server.
         scheme = environ.get('HTTP_X_SCHEME', '') or self.scheme
+        logger.debug("scheme is %s ", scheme)
         if scheme:
             environ['wsgi.url_scheme'] = scheme
         # this sets our own HOST parameter to be the one that was queried in the first place.
         server = environ.get('HTTP_X_FORWARDED_HOST', '') or self.server
+        logger.debug("server is %s", server)
         if server:
             environ['HTTP_HOST'] = server
+        logger.debug("middleware execution complete.")
         return self.app(environ, start_response)
