@@ -10,7 +10,7 @@ from app.helpers import get_logging_cfg
     the app import, which would cause the boto module to be loaded, which would in turn
     load the ssl module.
 """
-import gevent.monkey # pylint: disable=wrong-import-position
+import gevent.monkey  # pylint: disable=wrong-import-position
 
 gevent.monkey.patch_all()
 from gunicorn.app.base import BaseApplication  # pylint: disable=wrong-import-position
