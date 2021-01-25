@@ -1,4 +1,6 @@
 import os
+
+from app.helpers import get_logging_cfg
 """
     The gevent monkey import and patch suppress a warning, and a potential problem.
     Gunicorn would call it anyway, but if it tries to call it after the ssl module
@@ -43,5 +45,6 @@ if __name__ == '__main__':
         'worker_class': 'gevent',
         'workers': 2,  # scaling horizontaly is left to Kubernetes
         'timeout': 60,
+        'logconfig_dict': get_logging_cfg()
     }
     StandaloneApplication(application, options).run()
