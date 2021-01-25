@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 def get_logging_cfg():
-    logger.error(os.getcwd())
     cfg_file = os.getenv('LOGGING_CFG', 'logging-cfg-local.yaml')
 
     config = {}
