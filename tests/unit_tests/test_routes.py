@@ -117,9 +117,7 @@ class TestRoutes(unittest.TestCase):
 
     def test_create_shortlink_no_json(self):
         self.setUp()
-        response = self.app.post(
-            "/shortlinks", content_type="application/json", headers={"Origin": "map.geo.admin.ch"}
-        )
+        response = self.app.post("/shortlinks", headers={"Origin": "map.geo.admin.ch"})
         self.assertEqual(400, response.status_code)
         self.assertEqual("application/json", response.content_type)
         self.assertEqual({
