@@ -10,6 +10,7 @@ from flask import request
 from flask import redirect
 
 from app import app
+from app.helpers.route import prefix_route
 from app.helpers.urls import add_item
 from app.helpers.urls import fetch_url
 from app.helpers.checks import check_params
@@ -18,6 +19,9 @@ from app.models.dynamo_db import get_dynamodb_table
 from service_config import allowed_domains_pattern
 
 logger = logging.getLogger(__name__)
+
+# add route prefix
+app.route = prefix_route(app.route, '/v4/shortlink')
 
 base_response_headers = {
     'Content-Type': 'application/json; charset=utf-8',
