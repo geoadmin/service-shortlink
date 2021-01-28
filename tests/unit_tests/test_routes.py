@@ -93,7 +93,7 @@ class TestRoutes(unittest.TestCase):
     def test_checker_ok(self):
         # checker
         self.setUp()
-        response = self.app.get("/checker", headers={"Origin": "map.geo.admin.ch"})
+        response = self.app.get("/v4/shortlink/checker", headers={"Origin": "map.geo.admin.ch"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content_type, "application/json; charset=utf-8")
         self.assertEqual(response.json, {'success': True, 'message': 'OK'})
@@ -106,7 +106,7 @@ class TestRoutes(unittest.TestCase):
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()
         ):
             response = self.app.post(
-                "/shortlinks",
+                "/v4/shortlink/shortlinks",
                 data=json.dumps({"url": "https://map.geo.admin.ch/test"}),
                 content_type="application/json",
                 headers={"Origin": "map.geo.admin.ch"}
@@ -125,7 +125,7 @@ class TestRoutes(unittest.TestCase):
 
     def test_create_shortlink_no_json(self):
         self.setUp()
-        response = self.app.post("/shortlinks", headers={"Origin": "map.geo.admin.ch"})
+        response = self.app.post("/v4/shortlink/shortlinks", headers={"Origin": "map.geo.admin.ch"})
         self.assertEqual(400, response.status_code)
         self.assertEqual("application/json", response.content_type)
         self.assertEqual({
@@ -139,7 +139,7 @@ class TestRoutes(unittest.TestCase):
     def test_create_shortlink_no_url(self):
         self.setUp()
         response = self.app.post(
-            "/shortlinks",
+            "/v4/shortlink/shortlinks",
             data=json.dumps({}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
@@ -157,7 +157,7 @@ class TestRoutes(unittest.TestCase):
     def test_create_shortlink_no_hostname(self):
         self.setUp()
         response = self.app.post(
-            "/shortlinks",
+            "/v4/shortlink/shortlinks",
             data=json.dumps({"url": "/test"}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
@@ -177,7 +177,7 @@ class TestRoutes(unittest.TestCase):
     def test_create_shortlink_non_allowed_hostname_and_domain(self):
         self.setUp()
         response = self.app.post(
-            "/shortlinks",
+            "/v4/shortlink/shortlinks",
             data=json.dumps({"url": "https://not.a.valid.hostname.ch/test"}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
@@ -199,7 +199,7 @@ class TestRoutes(unittest.TestCase):
         self.setUp()
         url = "https://map.geo.admin.ch/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/"  # pylint: disable=line-too-long
         response = self.app.post(
-            "/shortlinks",
+            "/v4/shortlink/shortlinks",
             data=json.dumps({"url": url}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
@@ -228,7 +228,7 @@ class TestRoutes(unittest.TestCase):
         ):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
-                    f"/shortlinks/{shortid}?redirect=true",
+                    f"/v4/shortlink/shortlinks/{shortid}?redirect=true",
                     content_type="text/html",
                     headers={"Origin": "map.geo.admin.ch"}
                 )
@@ -245,7 +245,7 @@ class TestRoutes(unittest.TestCase):
         ):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
-                    f"/shortlinks/{shortid}?redirect=banana",
+                    f"/v4/shortlink/shortlinks/{shortid}?redirect=banana",
                     content_type="text/html",
                     headers={"Origin": "map.geo.admin.ch"}
                 )
@@ -269,7 +269,7 @@ class TestRoutes(unittest.TestCase):
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()
         ):
             response = self.app.get(
-                "/shortlinks/nonexistent",
+                "/v4/shortlink/shortlinks/nonexistent",
                 content_type="text/html; charset=utf-8",
                 headers={"Origin": "map.geo.admin.ch"}
             )
@@ -278,7 +278,8 @@ class TestRoutes(unittest.TestCase):
                 'error': {
                     'code': 404,
                     'message':
-                        "This short url doesn't exist: http://localhost/shortlinks/nonexistent"
+                        "This short url doesn't exist: "
+                        "http://localhost/v4/shortlink/shortlinks/nonexistent"
                 }
             }
             self.assertEqual(response.status_code, 404)
@@ -294,7 +295,7 @@ class TestRoutes(unittest.TestCase):
         ):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
-                    f"/shortlinks/{shortid}",
+                    f"/v4/shortlink/shortlinks/{shortid}",
                     content_type="application/json",
                     headers={"Origin": "map.geo.admin.ch"}
                 )
@@ -315,7 +316,7 @@ class TestRoutes(unittest.TestCase):
         ):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
-                    f"/shortlinks/{shortid}?redirect=false",
+                    f"/v4/shortlink/shortlinks/{shortid}?redirect=false",
                     content_type="application/json",
                     headers={"Origin": "map.geo.admin.ch"}
                 )
@@ -335,7 +336,7 @@ class TestRoutes(unittest.TestCase):
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()
         ):
             response = self.app.get(
-                "/shortlinks/nonexistent?redirect=false",
+                "/v4/shortlink/shortlinks/nonexistent?redirect=false",
                 content_type="application/json",
                 headers={"Origin": "map.geo.admin.ch"}
             )
@@ -345,7 +346,8 @@ class TestRoutes(unittest.TestCase):
                 'error': {
                     'code': 404,
                     'message':
-                        "This short url doesn't exist: http://localhost/shortlinks/nonexistent"
+                        "This short url doesn't exist: "
+                        "http://localhost/v4/shortlink/shortlinks/nonexistent"
                 },
                 'success': False
             }
