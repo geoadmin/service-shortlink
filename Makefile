@@ -122,8 +122,6 @@ gunicornserve: .venv/build.timestamp
 # Docker related functions.
 .PHONY: dockerbuild
 dockerbuild:
-	.PHONY: dockerbuild
-dockerbuild:
 	docker build \
 		--build-arg GIT_HASH="$(GIT_HASH)" \
 		--build-arg GIT_BRANCH="$(GIT_BRANCH)" \
