@@ -2,6 +2,8 @@ SHELL = /bin/bash
 
 .DEFAULT_GOAL := help
 
+SERVICE_NAME := service-shortlink
+
 CURRENT_DIR := $(shell pwd)
 INSTALL_DIR := $(CURRENT_DIR)/.venv
 HTTP_PORT ?= 5000
@@ -24,6 +26,17 @@ FLASK_CMD := $(INSTALL_DIR)/bin/flask
 YAPF_CMD := $(INSTALL_DIR)/bin/yapf
 NOSE_CMD := $(INSTALL_DIR)/bin/nose2
 PYLINT_CMD := $(INSTALL_DIR)/bin/pylint
+
+# Docker variables
+DOCKER_IMG_LOCAL_TAG = swisstopo/$(SERVICE_NAME):local
+
+# Docker metadata
+GIT_HASH := `git rev-parse HEAD`
+GIT_BRANCH := `git symbolic-ref HEAD --short 2>/dev/null`
+GIT_DIRTY := `git status --porcelain`
+GIT_TAG := `git describe --tags || echo "no version info"`
+AUTHOR := $(USER)
+
 all: help
 
 # This bit check define the build/python "target": if the system has an acceptable version of python, there will be no need to install python locally.
@@ -109,7 +122,14 @@ gunicornserve: .venv/build.timestamp
 # Docker related functions.
 .PHONY: dockerbuild
 dockerbuild:
-	docker build -t swisstopo/service-shortlink:local
+	.PHONY: dockerbuild
+dockerbuild:
+	docker build \
+		--build-arg GIT_HASH="$(GIT_HASH)" \
+		--build-arg GIT_BRANCH="$(GIT_BRANCH)" \
+		--build-arg GIT_DIRTY="$(GIT_DIRTY)" \
+		--build-arg VERSION="$(GIT_TAG)" \
+		--build-arg AUTHOR="$(AUTHOR)" -t $(DOCKER_IMG_LOCAL_TAG) .
 
 export-http-port:
 	@export HTTP_PORT=$(HTTP_PORT)
