@@ -11,6 +11,8 @@
 - [Dependencies](#dependencies)
 - [Service API](#service-api)
 - [Local Development](#local-development)
+- [Docker](#docker)
+- [Versioning](#versioning)
 - [Deployment](#deployment)
 
 ## Description
@@ -70,7 +72,7 @@ The redirect parameter redirect the user to the corresponding url instead if set
 
 ## Local Development
 
-### dependencies
+### Dependencies
 
 The **Make** targets assume you have **bash**, **curl**, **tar**, **docker** and **docker-compose** installed.
 
@@ -122,6 +124,44 @@ To stop serving through containers,
 
 Is the command you're looking for.
 
+## Docker
+
+The service is encapsulated in a Docker image. Images are pushed on the public [Dockerhub](https://hub.docker.com/r/swisstopo/service-shortlink/tags) registry. From each github PR that is merged into develop branch, one Docker image is built and pushed with the following tags:
+
+- `develop.latest`
+- `develop.CURRENT_VERSION-beta.INCREMENTAL_NUMBER`
+
+From each github PR that is merged into master, one Docker image is built an pushed with the following tag:
+
+- `master.VERSION`
+
+Each image contains the following metadata:
+
+- author
+- git.branch
+- git.hash
+- git.dirty
+- version
+
+These metadata can be seen directly on the dockerhub registry in the image layers or can be read with the following command
+
+```bash
+# NOTE: jq is only used for pretty printing the json output,
+# you can install it with `apt install jq` or simply enter the command without it
+docker image inspect --format='{{json .Config.Labels}}' swisstopo/service-shortlink:develop.latest | jq
+```
+
+You can also check these metadata on a running container as follows
+
+```bash
+docker ps --format="table {{.ID}}\t{{.Image}}\t{{.Labels}}"
+```
+
+## Versioning
+
+This service uses [SemVer](https://semver.org/) as versioning scheme. The versioning is automatically handled by `.github/workflows/main.yml` file.
+
+See also [Git Flow - Versioning](https://github.com/geoadmin/doc-guidelines/blob/master/GIT_FLOW.md#versioning) for more information on the versioning guidelines.
 
 ## Deployment
 
@@ -137,9 +177,7 @@ The service is configured by Environment Variable:
 |--------------|-----------------------|------------------------------------|
 | LOGGING_CFG  | logging-cfg-local.yml | Logging configuration file to use. |
 | AWS_ACCESS_KEY_ID | None | Necessary credential to access dynamodb        |
-| AWS_SECRET_ACCESS_KEY | None | AWS_SECRET_ACCESS_KEY                      |
-| AWS_SECURITY_TOKEN | None | AWS_SECURITY_TOKEN                            |
-| AWS_SESSION_TOKEN | None | AWS_SESSION_TOKEN                              |
+| AWS_SECRET_ACCESS_KEY | None | AWS_SECRET_ACCESS_KEY                      | |
 | ALLOWED_DOMAINS | 'admin.ch,swisstopo.ch,bgdi.ch' | A comma separated list of allowed domains names |
 | ALLOWED_HOSTS | 'api.geo.admin.ch,api3.geo.admin.ch' | a comma separated list of allowed hostnames |
 | AWS_DYNAMODB_TABLE_NAME | 'shortlinks_test' | The dynamodb table name |
