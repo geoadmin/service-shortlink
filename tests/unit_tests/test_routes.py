@@ -42,34 +42,42 @@ class TestRoutes(unittest.TestCase):
         self.connection = boto3.resource('dynamodb', region)
         self.connection.create_table(
             TableName='shortlinks_test',
-            AttributeDefinitions=[{
-                'AttributeName': 'url', 'AttributeType': 'S'
-            }, {
-                'AttributeName': 'shortlinks_id', 'AttributeType': 'S'
-            }],
-            KeySchema=[{
-                'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
-            }, {
-                'AttributeName': 'url', 'KeyType': 'HASH'
-            }],
-            LocalSecondaryIndexes=[{
-                'IndexName': 'UrlIndex',
-                'KeySchema': [{
+            AttributeDefinitions=[
+                {
+                    'AttributeName': 'url', 'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'shortlinks_id', 'AttributeType': 'S'
+                },
+            ],
+            KeySchema=[
+                {
+                    'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
+                },
+                {
                     'AttributeName': 'url', 'KeyType': 'HASH'
-                }],
-                'Projection': {
-                    'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['shortlinks_id']
-                }
-            },
-                                   {
-                                       'IndexName': 'ShortlinksIndex',
-                                       'KeySchema': [{
-                                           'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
-                                       }],
-                                       'Projection': {
-                                           'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['url']
-                                       }
-                                   }],
+                },
+            ],
+            LocalSecondaryIndexes=[
+                {
+                    'IndexName': 'UrlIndex',
+                    'KeySchema': [{
+                        'AttributeName': 'url', 'KeyType': 'HASH'
+                    }],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['shortlinks_id']
+                    }
+                },
+                {
+                    'IndexName': 'ShortlinksIndex',
+                    'KeySchema': [{
+                        'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
+                    }],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['url']
+                    }
+                },
+            ],
             ProvisionedThroughput={
                 'ReadCapacityUnits': 123, 'WriteCapacityUnits': 123
             }
