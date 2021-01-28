@@ -12,6 +12,11 @@ PYTHON_FILES := $(shell find ./* -type f -name "*.py" -print)
 TEST_REPORT_DIR := $(CURRENT_DIR)/tests/report
 TEST_REPORT_FILE := nose2-junit.xml
 
+# general targets timestamps
+TIMESTAMPS = .timestamps
+REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.requirements.timestamp
+DEV_REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.dev-requirements.timestamps
+
 #FIXME: put this variable in config file
 PYTHON_VERSION := 3.7.4
 SYSTEM_PYTHON_CMD := $(shell ./getPythonCmd.sh ${PYTHON_VERSION} ${PYTHON_LOCAL_DIR})
@@ -120,17 +125,17 @@ format-lint: format lint
 
 
 .PHONY: test
-test: .venv/build.timestamp
+test: $(DEV_REQUIREMENTS_TIMESTAMP)
 	mkdir -p $(TEST_REPORT_DIR)
 	$(NOSE_CMD) -c tests/unittest.cfg --plugin nose2.plugins.junitxml --junit-xml --junit-xml-path $(TEST_REPORT_DIR)/$(TEST_REPORT_FILE) -s tests/
 
 # Serve targets. Using these will run the application on your local machine. You can either serve with a wsgi front (like it would be within the container), or without.
 .PHONY: serve
-serve: .venv/build.timestamp
+serve: $(REQUIREMENTS_TIMESTAMP)
 	FLASK_APP=service_launcher FLASK_DEBUG=1 $(FLASK_CMD) run --host=0.0.0.0 --port=$(HTTP_PORT)
 
 .PHONY: gunicornserve
-gunicornserve: .venv/build.timestamp
+gunicornserve: $(REQUIREMENTS_TIMESTAMP)
 	${PYTHON_CMD} wsgi.py
 
 # Docker related functions.
@@ -157,11 +162,29 @@ shutdown: export-http-port
 
 # Cleaning functions. clean_venv will only remove the virtual environment, while clean will also remove the local python installation.
 
-.PHONY: clean
-clean: clean_venv
-	rm -rf build;
-	rm -rf $(TEST_REPORT_DIR)
-
 .PHONY: clean_venv
 clean_venv:
-	rm -rf ${INSTALL_DIR};
+	pipenv --rm
+
+
+.PHONY: clean
+clean: clean_venv
+	@# clean python cache files
+	find . -name __pycache__ -type d -print0 | xargs -I {} -0 rm -rf "{}"
+	rm -rf $(TEST_REPORT_DIR)
+	rm -rf $(TIMESTAMPS)
+
+# Actual builds targets with dependencies
+
+$(TIMESTAMPS):
+	mkdir -p $(TIMESTAMPS)
+
+
+$(REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(PIP_FILE) $(PIP_FILE_LOCK)
+	pipenv install
+	@touch $(REQUIREMENTS_TIMESTAMP)
+
+
+$(DEV_REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(PIP_FILE) $(PIP_FILE_LOCK)
+	pipenv install --dev
+	@touch $(DEV_REQUIREMENTS_TIMESTAMP)
