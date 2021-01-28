@@ -8,7 +8,6 @@ from flask import jsonify
 from flask import make_response
 from flask import request
 from flask import redirect
-from werkzeug.exceptions import BadRequest
 
 from app import app
 from app.helpers.urls import add_item
@@ -47,7 +46,7 @@ def checker():
 
     :return: a simple json saying basically 'OK'
     """
-    logger.debug("Checker route entered at %f", str(time.time()))
+    logger.debug("Checker route entered at %f", time.time())
     response = make_response(jsonify({'success': True, 'message': 'OK'}), 200)
     response.headers = base_response_headers
     return response
@@ -93,12 +92,16 @@ def create_shortlink():
     response_headers = base_response_headers
     try:
         url = request.json.get('url', None)
-    except BadRequest:
-        logger.error("No Json Received as parameter")
+    except AttributeError as err:
+        logger.error("No Json Received as parameter : %s", err)
         abort(make_error_msg(400, "This service requires a json to be posted as a payload."))
     except json.decoder.JSONDecodeError:
         logger.error("Invalid Json Received as parameter")
-        abort(make_error_msg(400, "The json received was malformed and could not be interpreted as a json."))
+        abort(
+            make_error_msg(
+                400, "The json received was malformed and could not be interpreted as a json."
+            )
+        )
     scheme = request.scheme
     domain = request.url_root.replace(
         scheme, ''

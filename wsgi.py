@@ -8,11 +8,12 @@ import os
     the app import, which would cause the boto module to be loaded, which would in turn
     load the ssl module.
 """
-import gevent.monkey # pylint: disable=wrong-import-position
+import gevent.monkey  # pylint: disable=wrong-import-position,wrong-import-order
 
 gevent.monkey.patch_all()
-from gunicorn.app.base import BaseApplication  # pylint: disable=wrong-import-position
+from gunicorn.app.base import BaseApplication  # pylint: disable=wrong-import-position,wrong-import-order
 from app import app as application  # pylint: disable=wrong-import-position
+from app.helpers import get_logging_cfg  # pylint: disable=wrong-import-position
 
 
 class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method
@@ -43,5 +44,6 @@ if __name__ == '__main__':
         'worker_class': 'gevent',
         'workers': 2,  # scaling horizontaly is left to Kubernetes
         'timeout': 60,
+        'logconfig_dict': get_logging_cfg()
     }
     StandaloneApplication(application, options).run()

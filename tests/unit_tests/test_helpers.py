@@ -42,58 +42,44 @@ class TestDynamoDb(unittest.TestCase):
         self.connection.create_table(
             TableName='shortlinks_test',
             AttributeDefinitions=[
-                    {
-                        'AttributeName': 'url',
-                        'AttributeType': 'S'
-                    },
-                    {
-                        'AttributeName': 'shortlinks_id',
-                        'AttributeType': 'S'
-                    }
-
-                ],
+                {
+                    'AttributeName': 'url', 'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'shortlinks_id', 'AttributeType': 'S'
+                },
+            ],
             KeySchema=[
                 {
-                        'AttributeName': 'shortlinks_id',
-                        'KeyType': 'HASH'
-                    },
+                    'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
+                },
                 {
-                        'AttributeName': 'url',
-                        'KeyType': 'HASH'
-                    }
+                    'AttributeName': 'url', 'KeyType': 'HASH'
+                },
             ],
             LocalSecondaryIndexes=[
-                    {
-                        'IndexName': 'UrlIndex',
-                        'KeySchema': [
-                            {
-                                'AttributeName': 'url',
-                                'KeyType': 'HASH'
-                            }
-                        ],
-                        'Projection': {
-                            'ProjectionType': 'INCLUDE',
-                            'NonKeyAttributes': ['shortlinks_id']
-                        }
-                    },
-                    {
-                        'IndexName': 'ShortlinksIndex',
-                        'KeySchema': [
-                            {
-                                'AttributeName': 'shortlinks_id',
-                                'KeyType': 'HASH'
-                            }
-                        ],
-                        'Projection': {
-                            'ProjectionType': 'INCLUDE',
-                            'NonKeyAttributes': ['url']
-                        }
+                {
+                    'IndexName': 'UrlIndex',
+                    'KeySchema': [{
+                        'AttributeName': 'url', 'KeyType': 'HASH'
+                    }],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['shortlinks_id']
                     }
-                ],
+                },
+                {
+                    'IndexName': 'ShortlinksIndex',
+                    'KeySchema': [{
+                        'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
+                    }],
+                    'Projection': {
+                        'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['url']
+                    }
+                },
+            ],
             ProvisionedThroughput={
-                    'ReadCapacityUnits': 123,
-                    'WriteCapacityUnits': 123
-                }
+                'ReadCapacityUnits': 123, 'WriteCapacityUnits': 123
+            }
         )
         self.table = self.connection.Table('shortlinks_test')
         for url in self.valid_urls_list:
@@ -102,62 +88,78 @@ class TestDynamoDb(unittest.TestCase):
 
     def test_check_params_ok_http(self):
         with app.app_context():
-            base_path = check_params(scheme='http',
-                                     host='api3.geo.admin.ch',
-                                     url='https://map.geo.admin.ch/enclume',
-                                     base_path='/v4/shortlink')
+            base_path = check_params(
+                scheme='http',
+                host='api3.geo.admin.ch',
+                url='https://map.geo.admin.ch/enclume',
+                base_path='/v4/shortlink'
+            )
             self.assertEqual(base_path, 'http://s.geo.admin.ch/')
 
     def test_check_params_ok_https(self):
         with app.app_context():
-            base_path = check_params(scheme='https',
-                                     host='api3.geo.admin.ch',
-                                     url='https://map.geo.admin.ch/enclume',
-                                     base_path='/v4/shortlink')
+            base_path = check_params(
+                scheme='https',
+                host='api3.geo.admin.ch',
+                url='https://map.geo.admin.ch/enclume',
+                base_path='/v4/shortlink'
+            )
             self.assertEqual(base_path, 'https://s.geo.admin.ch/')
 
     def test_check_params_ok_non_standard_host(self):
         with app.app_context():
-            base_path = check_params(scheme='https',
-                                     host='service-shortlink.dev.bgdi.ch',
-                                     url='https://map.geo.admin.ch/enclume',
-                                     base_path='/v4/shortlink')
-            self.assertEqual(base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/shortlinks/')
+            base_path = check_params(
+                scheme='https',
+                host='service-shortlink.dev.bgdi.ch',
+                url='https://map.geo.admin.ch/enclume',
+                base_path='/v4/shortlink'
+            )
+            self.assertEqual(
+                base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/shortlinks/'
+            )
 
     def test_check_params_nok_no_url(self):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
-                check_params(scheme='https',
-                             host='service-shortlink.dev.bgdi.ch',
-                             url=None,
-                             base_path='/v4/shortlink')
+                check_params(
+                    scheme='https',
+                    host='service-shortlink.dev.bgdi.ch',
+                    url=None,
+                    base_path='/v4/shortlink'
+                )
                 self.assertEqual(http_error.exception.code, 400)
 
     def test_check_params_nok_url_empty_string(self):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
-                check_params(scheme='https',
-                             host='service-shortlink.dev.bgdi.ch',
-                             url='',
-                             base_path='/v4/shortlink')
+                check_params(
+                    scheme='https',
+                    host='service-shortlink.dev.bgdi.ch',
+                    url='',
+                    base_path='/v4/shortlink'
+                )
                 self.assertEqual(http_error.exception.code, 400)
 
     def test_check_params_nok_url_no_host(self):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
-                check_params(scheme='https',
-                             host='service-shortlink.dev.bgdi.ch',
-                             url='/?layers=ch.bfe.elektromobilität',
-                             base_path='/v4/shortlink')
+                check_params(
+                    scheme='https',
+                    host='service-shortlink.dev.bgdi.ch',
+                    url='/?layers=ch.bfe.elektromobilität',
+                    base_path='/v4/shortlink'
+                )
                 self.assertEqual(http_error.exception.code, 400)
 
     def test_check_params_nok_url_from_non_valid_domains_or_hostname(self):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
-                check_params(scheme='https',
-                             host='service-shortlink.dev.bgdi.ch',
-                             url='https://www.this.is.quite.invalid.ch/?layers=ch.bfe.elektromobilität',
-                             base_path='/v4/shortlink')
+                check_params(
+                    scheme='https',
+                    host='service-shortlink.dev.bgdi.ch',
+                    url='https://www.this.is.quite.invalid.ch/?layers=ch.bfe.elektromobilität',
+                    base_path='/v4/shortlink'
+                )
                 self.assertEqual(http_error.exception.code, 400)
 
     @mock_dynamodb2
@@ -183,7 +185,9 @@ class TestDynamoDb(unittest.TestCase):
     @mock_dynamodb2
     def test_check_and_get_shortlinks_id_non_existent(self):
         self.setup()
-        self.assertEqual(check_and_get_shortlinks_id(self.table, "http://non.existent.url.ch"), None)
+        self.assertEqual(
+            check_and_get_shortlinks_id(self.table, "http://non.existent.url.ch"), None
+        )
 
     @mock_dynamodb2
     def test_add_item(self):
