@@ -115,8 +115,8 @@ class TestRoutes(unittest.TestCase):
             self.assertEqual(response.content_type, "application/json; charset=utf-8")
             self.assertEqual(response.json.get('success'), True)
             shorturl = response.json.get('shorturl')
-            self.assertEqual('http://localhost/shortlinks/' in shorturl, True)
-            shorturl = shorturl.replace('http://localhost/shortlinks/', '')
+            self.assertEqual('http://localhost/v4/shortlink/shortlinks/' in shorturl, True)
+            shorturl = shorturl.replace('http://localhost/v4/shortlink/shortlinks/', '')
             self.assertEqual(re.search(r"^\d{12}$", shorturl) is not None, True)
 
     """
