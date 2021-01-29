@@ -120,7 +120,6 @@ class TestDynamoDb(unittest.TestCase):
                 url='https://map.geo.admin.ch/enclume',
                 base_path=''
             )
-            print(base_path)
             self.assertEqual(
                 base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/shortlinks/'
             )
