@@ -85,14 +85,20 @@ class TestDynamoDb(unittest.TestCase):
         for url in self.valid_urls_list:
             uuid = (create_url(self.table, url))
             self.uuid_to_url_dict[uuid] = url
-
+    """
+    Quick note about checker tests parameters : 
+    In flask request, request.script_root does not consider the prefix to be part of the
+    base path, and url_root does not include it either. These are the parameters the function will
+    receive.
+    
+    """
     def test_check_params_ok_http(self):
         with app.app_context():
             base_path = check_params(
                 scheme='http',
                 host='api3.geo.admin.ch',
                 url='https://map.geo.admin.ch/enclume',
-                base_path='/v4/shortlink'
+                base_path=''
             )
             self.assertEqual(base_path, 'http://s.geo.admin.ch/')
 
@@ -102,7 +108,7 @@ class TestDynamoDb(unittest.TestCase):
                 scheme='https',
                 host='api3.geo.admin.ch',
                 url='https://map.geo.admin.ch/enclume',
-                base_path='/v4/shortlink'
+                base_path=''
             )
             self.assertEqual(base_path, 'https://s.geo.admin.ch/')
 
@@ -112,7 +118,7 @@ class TestDynamoDb(unittest.TestCase):
                 scheme='https',
                 host='service-shortlink.dev.bgdi.ch',
                 url='https://map.geo.admin.ch/enclume',
-                base_path='/v4/shortlink'
+                base_path=''
             )
             self.assertEqual(
                 base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/shortlinks/'
@@ -125,7 +131,7 @@ class TestDynamoDb(unittest.TestCase):
                     scheme='https',
                     host='service-shortlink.dev.bgdi.ch',
                     url=None,
-                    base_path='/v4/shortlink'
+                    base_path=''
                 )
                 self.assertEqual(http_error.exception.code, 400)
 
@@ -136,7 +142,7 @@ class TestDynamoDb(unittest.TestCase):
                     scheme='https',
                     host='service-shortlink.dev.bgdi.ch',
                     url='',
-                    base_path='/v4/shortlink'
+                    base_path=''
                 )
                 self.assertEqual(http_error.exception.code, 400)
 
@@ -147,7 +153,7 @@ class TestDynamoDb(unittest.TestCase):
                     scheme='https',
                     host='service-shortlink.dev.bgdi.ch',
                     url='/?layers=ch.bfe.elektromobilität',
-                    base_path='/v4/shortlink'
+                    base_path=''
                 )
                 self.assertEqual(http_error.exception.code, 400)
 
@@ -158,7 +164,7 @@ class TestDynamoDb(unittest.TestCase):
                     scheme='https',
                     host='service-shortlink.dev.bgdi.ch',
                     url='https://www.this.is.quite.invalid.ch/?layers=ch.bfe.elektromobilität',
-                    base_path='/v4/shortlink'
+                    base_path=''
                 )
                 self.assertEqual(http_error.exception.code, 400)
 

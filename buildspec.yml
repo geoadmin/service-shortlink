@@ -36,7 +36,7 @@ phases:
       - export IMAGE_TAG="${GITHUB_BRANCH}.${GITHUB_COMMIT}"
       - echo "GITHUB_BRANCH=${GITHUB_BRANCH} GITHUB_COMMIT=${GITHUB_COMMIT} GIT_TAG=${GIT_TAG} DOCKER_IMG_TAG=${DOCKER_IMG_TAG}"
       - echo "creating a clean environment"
-      - make clean setup
+      - make ci
   build:
     commands:
       - echo Build started on $(date)

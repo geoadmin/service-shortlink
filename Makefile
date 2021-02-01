@@ -5,27 +5,39 @@ SHELL = /bin/bash
 SERVICE_NAME := service-shortlink
 
 CURRENT_DIR := $(shell pwd)
-INSTALL_DIR := $(CURRENT_DIR)/.venv
+INSTALL_DIR := $(shell pipenv --venv)
 HTTP_PORT ?= 5000
 PYTHON_LOCAL_DIR := $(CURRENT_DIR)/build/local
 PYTHON_FILES := $(shell find ./* -type f -name "*.py" -print)
 TEST_REPORT_DIR := $(CURRENT_DIR)/tests/report
 TEST_REPORT_FILE := nose2-junit.xml
 
+# general targets timestamps
+TIMESTAMPS = .timestamps
+REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.requirements.timestamp
+DEV_REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.dev-requirements.timestamps
+
 #FIXME: put this variable in config file
 PYTHON_VERSION := 3.7.4
 SYSTEM_PYTHON_CMD := $(shell ./getPythonCmd.sh ${PYTHON_VERSION} ${PYTHON_LOCAL_DIR})
+
+# PIPENV files
+PIP_FILE = Pipfile
+PIP_FILE_LOCK = Pipfile.lock
 
 # default configuration
 HTTP_PORT ?= 8080
 
 # Commands
-PYTHON_CMD := $(INSTALL_DIR)/bin/python3
-PIP_CMD := $(INSTALL_DIR)/bin/pip3
-FLASK_CMD := $(INSTALL_DIR)/bin/flask
-YAPF_CMD := $(INSTALL_DIR)/bin/yapf
-NOSE_CMD := $(INSTALL_DIR)/bin/nose2
-PYLINT_CMD := $(INSTALL_DIR)/bin/pylint
+
+PIPENV_RUN := pipenv run
+PYTHON_CMD := $(PIPENV_RUN) python3
+PIP_CMD := $(PIPENV_RUN) pip3
+FLASK_CMD := $(PIPENV_RUN) flask
+YAPF_CMD := $(PIPENV_RUN) yapf
+ISORT_CMD := $(PIPENV_RUN) isort
+NOSE_CMD := $(PIPENV_RUN) nose2
+PYLINT_CMD := $(PIPENV_RUN) pylint
 
 # Docker variables
 DOCKER_IMG_LOCAL_TAG = swisstopo/$(SERVICE_NAME):local
@@ -63,9 +75,13 @@ help:
 	@echo
 	@echo "Possible targets:"
 	@echo -e " \033[1mBUILD TARGETS\033[0m "
-	@echo "- setup              Create the python virtual environment"
-	@echo -e " \033[1mLINTING TOOLS TARGETS\033[0m "
-	@echo "- lint               Lint and format the python source code"
+	@echo "- setup              Create the python virtual environment and activate it"
+	@echo "- dev                Create the python virtual environment with developper tools and activate it"
+	@echo "- ci                 Create the python virtual environment and install requirements based on the Pipfile.lock"
+	@echo -e " \033[1mFORMATING, LINTING AND TESTING TOOLS TARGETS\033[0m "
+	@echo "- format             Format the python source code"
+	@echo "- lint               Lint the python source code"
+	@echo "- format-lint        Format and lint the python source code"
 	@echo "- test               Run the tests"
 	@echo -e " \033[1mLOCAL SERVER TARGETS\033[0m "
 	@echo "- serve              Run the project using the flask debug server"
@@ -77,46 +93,53 @@ help:
 	@echo "- clean              Clean genereated files"
 	@echo "- clean_venv         Clean python venv"
 
-# Build targets. Calling setup is all that is needed for the local files to be installed as needed. Bundesnetz may cause problem.
 
-python: build/python
-	@echo $(shell $(SYSTEM_PYTHON_CMD) --version 2>&1) "installed"
+# Build targets. Calling setup is all that is needed for the local files to be installed as needed.
+
+.PHONY: dev
+dev: $(DEV_REQUIREMENTS_TIMESTAMP)
+	pipenv shell
+
 
 .PHONY: setup
-setup: python .venv/build.timestamp
+setup: $(REQUIREMENTS_TIMESTAMP)
+	pipenv shell
 
-
-$(PYTHON_LOCAL_DIR)/bin/python3.7:
-	@echo "Building a local python..."
-	mkdir -p $(PYTHON_LOCAL_DIR);
-	curl -z $(PYTHON_LOCAL_DIR)/Python-$(PYTHON_VERSION).tar.xz https://www.python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.xz -o $(PYTHON_LOCAL_DIR)/Python-$(PYTHON_VERSION).tar.xz;
-	cd $(PYTHON_LOCAL_DIR) && tar -xf Python-$(PYTHON_VERSION).tar.xz && Python-$(PYTHON_VERSION)/configure --prefix=$(PYTHON_LOCAL_DIR)/ && make altinstall
-
-.venv/build.timestamp: build/python
-	$(SYSTEM_PYTHON_CMD) -m venv $(INSTALL_DIR) && $(PIP_CMD) install --upgrade pip setuptools
-	${PIP_CMD} install -r dev_requirements.txt
-	$(PIP_CMD) install -r requirements.txt
-	touch .venv/build.timestamp
+.PHONY: ci
+ci: $(TIMESTAMPS) $(PIP_FILE) $(PIP_FILE_LOCK)
+	# Create virtual env with all packages for development using the Pipfile.lock
+	pipenv sync --dev
 
 # linting target, calls upon yapf to make sure your code is easier to read and respects some conventions.
 
-.PHONY: lint
-lint: .venv/build.timestamp
+.PHONY: format
+format: $(DEV_REQUIREMENTS_TIMESTAMP)
 	$(YAPF_CMD) -p -i --style .style.yapf $(PYTHON_FILES)
+	$(ISORT_CMD) $(PYTHON_FILES)
+
+
+
+.PHONY: lint
+lint: $(DEV_REQUIREMENTS_TIMESTAMP)
 	$(PYLINT_CMD) $(PYTHON_FILES)
 
+
+.PHONY: format-lint
+format-lint: format lint
+
+
 .PHONY: test
-test: .venv/build.timestamp
+test: $(DEV_REQUIREMENTS_TIMESTAMP)
 	mkdir -p $(TEST_REPORT_DIR)
 	$(NOSE_CMD) -c tests/unittest.cfg --plugin nose2.plugins.junitxml --junit-xml --junit-xml-path $(TEST_REPORT_DIR)/$(TEST_REPORT_FILE) -s tests/
 
 # Serve targets. Using these will run the application on your local machine. You can either serve with a wsgi front (like it would be within the container), or without.
 .PHONY: serve
-serve: .venv/build.timestamp
+serve: $(REQUIREMENTS_TIMESTAMP)
 	FLASK_APP=service_launcher FLASK_DEBUG=1 $(FLASK_CMD) run --host=0.0.0.0 --port=$(HTTP_PORT)
 
 .PHONY: gunicornserve
-gunicornserve: .venv/build.timestamp
+gunicornserve: $(REQUIREMENTS_TIMESTAMP)
 	${PYTHON_CMD} wsgi.py
 
 # Docker related functions.
@@ -143,11 +166,29 @@ shutdown: export-http-port
 
 # Cleaning functions. clean_venv will only remove the virtual environment, while clean will also remove the local python installation.
 
-.PHONY: clean
-clean: clean_venv
-	rm -rf build;
-	rm -rf $(TEST_REPORT_DIR)
-
 .PHONY: clean_venv
 clean_venv:
-	rm -rf ${INSTALL_DIR};
+	pipenv --rm
+
+
+.PHONY: clean
+clean: clean_venv
+	@# clean python cache files
+	find . -name __pycache__ -type d -print0 | xargs -I {} -0 rm -rf "{}"
+	rm -rf $(TEST_REPORT_DIR)
+	rm -rf $(TIMESTAMPS)
+
+# Actual builds targets with dependencies
+
+$(TIMESTAMPS):
+	mkdir -p $(TIMESTAMPS)
+
+
+$(REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(PIP_FILE) $(PIP_FILE_LOCK)
+	pipenv install
+	@touch $(REQUIREMENTS_TIMESTAMP)
+
+
+$(DEV_REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(PIP_FILE) $(PIP_FILE_LOCK)
+	pipenv install --dev
+	@touch $(DEV_REQUIREMENTS_TIMESTAMP)
