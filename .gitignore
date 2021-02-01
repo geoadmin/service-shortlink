@@ -45,3 +45,7 @@ local/
 
 #vim
 *.swp
+
+#generated files
+.timestamps/
+tests/report

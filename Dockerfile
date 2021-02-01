@@ -8,12 +8,10 @@ RUN groupadd -r geoadmin && useradd -r -s /bin/false -g geoadmin geoadmin
 # RUN apt-get update && apt-get install -y [packages] \
 #  && apt-get clean \
 #  && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-# HERE : install relevant packages
 RUN pip3 install pipenv \
     && pipenv --version
+
+WORKDIR /app
 
 COPY Pipfile* /tmp/
 RUN cd /tmp && \

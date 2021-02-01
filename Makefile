@@ -21,6 +21,10 @@ DEV_REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.dev-requirements.timestamps
 PYTHON_VERSION := 3.7.4
 SYSTEM_PYTHON_CMD := $(shell ./getPythonCmd.sh ${PYTHON_VERSION} ${PYTHON_LOCAL_DIR})
 
+# PIPENV files
+PIP_FILE = Pipfile
+PIP_FILE_LOCK = Pipfile.lock
+
 # default configuration
 HTTP_PORT ?= 8080
 
