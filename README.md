@@ -129,11 +129,11 @@ Is the command you're looking for.
 The service is encapsulated in a Docker image. Images are pushed on the public [Dockerhub](https://hub.docker.com/r/swisstopo/service-shortlink/tags) registry. From each github PR that is merged into develop branch, one Docker image is built and pushed with the following tags:
 
 - `develop.latest`
-- `develop.CURRENT_VERSION-beta.INCREMENTAL_NUMBER`
+- `CURRENT_VERSION-beta.INCREMENTAL_NUMBER`
 
 From each github PR that is merged into master, one Docker image is built an pushed with the following tag:
 
-- `master.VERSION`
+- `VERSION`
 
 Each image contains the following metadata:
 
