@@ -11,7 +11,7 @@
 - [Dependencies](#dependencies)
 - [Service API](#service-api)
 - [Local Development](#local-development)
-- [Docker](#docker)
+- [Docker helpers](#docker-helpers)
 - [Versioning](#versioning)
 - [Deployment](#deployment)
 
@@ -123,17 +123,12 @@ To stop serving through containers,
     make shutdown
 
 Is the command you're looking for.
+### Docker helpers
 
-## Docker
+From each github PR that is merged into `master` or into `develop`, one Docker image is built and pushed on AWS ECR with the following tag:
 
-The service is encapsulated in a Docker image. Images are pushed on the public [Dockerhub](https://hub.docker.com/r/swisstopo/service-shortlink/tags) registry. From each github PR that is merged into develop branch, one Docker image is built and pushed with the following tags:
-
-- `develop.latest`
-- `CURRENT_VERSION-beta.INCREMENTAL_NUMBER`
-
-From each github PR that is merged into master, one Docker image is built an pushed with the following tag:
-
-- `VERSION`
+- `vX.X.X` for tags on master
+- `vX.X.X-beta.X` for tags on develop 
 
 Each image contains the following metadata:
 
@@ -143,12 +138,16 @@ Each image contains the following metadata:
 - git.dirty
 - version
 
-These metadata can be seen directly on the dockerhub registry in the image layers or can be read with the following command
+These metadata can be read with the following command
 
 ```bash
+# NOTE: Currently we don't have permission to do docker pull on AWS ECR
+make dockerlogin
+docker pull 974517877189.dkr.ecr.eu-central-1.amazonaws.com/service-shortcut:develop.latest
+
 # NOTE: jq is only used for pretty printing the json output,
 # you can install it with `apt install jq` or simply enter the command without it
-docker image inspect --format='{{json .Config.Labels}}' swisstopo/service-shortlink:develop.latest | jq
+docker image inspect --format='{{json .Config.Labels}}' 974517877189.dkr.ecr.eu-central-1.amazonaws.com/service-shortcut:develop.latest | jq
 ```
 
 You can also check these metadata on a running container as follows
@@ -157,11 +156,20 @@ You can also check these metadata on a running container as follows
 docker ps --format="table {{.ID}}\t{{.Image}}\t{{.Labels}}"
 ```
 
-## Versioning
+To build a local docker image tagged as `service-shortcut:local-${USER}-${GIT_HASH_SHORT}` you can
+use
 
-This service uses [SemVer](https://semver.org/) as versioning scheme. The versioning is automatically handled by `.github/workflows/main.yml` file.
+```bash
+make dockerbuild
+```
 
-See also [Git Flow - Versioning](https://github.com/geoadmin/doc-guidelines/blob/master/GIT_FLOW.md#versioning) for more information on the versioning guidelines.
+To push the image on the ECR repository use the following two commands
+
+```bash
+make dockerlogin
+make dockerpush
+```
+
 
 ## Deployment
 

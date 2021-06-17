@@ -39,15 +39,20 @@ ISORT_CMD := $(PIPENV_RUN) isort
 NOSE_CMD := $(PIPENV_RUN) nose2
 PYLINT_CMD := $(PIPENV_RUN) pylint
 
-# Docker variables
-DOCKER_IMG_LOCAL_TAG = swisstopo/$(SERVICE_NAME):local
+# AWS variables
+AWS_DEFAULT_REGION = eu-central-1
 
 # Docker metadata
 GIT_HASH := `git rev-parse HEAD`
+GIT_HASH_SHORT = `git rev-parse --short HEAD`
 GIT_BRANCH := `git symbolic-ref HEAD --short 2>/dev/null`
 GIT_DIRTY := `git status --porcelain`
 GIT_TAG := `git describe --tags || echo "no version info"`
 AUTHOR := $(USER)
+
+# Docker variables
+DOCKER_REGISTRY = 974517877189.dkr.ecr.eu-central-1.amazonaws.com
+DOCKER_IMG_LOCAL_TAG = $(DOCKER_REGISTRY)/$(SERVICE_NAME):local-$(USER)-$(GIT_HASH_SHORT)
 
 all: help
 
@@ -86,7 +91,9 @@ help:
 	@echo -e " \033[1mLOCAL SERVER TARGETS\033[0m "
 	@echo "- serve              Run the project using the flask debug server"
 	@echo "- gunicornserve      Run the project using the gunicorn WSGI server"
+	@echo "- dockerlogin        Login to the AWS ECR registery for pulling/pushing docker images"
 	@echo "- dockerbuild        Build the project localy using the gunicorn WSGI server inside a container"
+	@echo "- dockerpush         Build and push the project localy (with tag := $(DOCKER_IMG_LOCAL_TAG))"
 	@echo "- dockerrun          Run the project using the gunicorn WSGI server inside a container. (Exposed_port: $(HTTP_PORT)"
 	@echo "- shutdown           Stop the aforementioned container"
 	@echo -e " \033[1mCLEANING TARGETS\033[0m "
@@ -143,6 +150,10 @@ gunicornserve: $(REQUIREMENTS_TIMESTAMP)
 	${PYTHON_CMD} wsgi.py
 
 # Docker related functions.
+.PHONY: dockerlogin
+dockerlogin:
+	aws --profile swisstopo-bgdi-builder ecr get-login-password --region $(AWS_DEFAULT_REGION) | docker login --username AWS --password-stdin $(DOCKER_REGISTRY)
+
 .PHONY: dockerbuild
 dockerbuild:
 	docker build \
@@ -151,6 +162,10 @@ dockerbuild:
 		--build-arg GIT_DIRTY="$(GIT_DIRTY)" \
 		--build-arg VERSION="$(GIT_TAG)" \
 		--build-arg AUTHOR="$(AUTHOR)" -t $(DOCKER_IMG_LOCAL_TAG) .
+
+.PHONY: dockerpush
+dockerpush: dockerbuild
+	docker push $(DOCKER_IMG_LOCAL_TAG)
 
 export-http-port:
 	@export HTTP_PORT=$(HTTP_PORT)
