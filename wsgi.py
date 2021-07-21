@@ -1,4 +1,3 @@
-import os
 """
     The gevent monkey import and patch suppress a warning, and a potential problem.
     Gunicorn would call it anyway, but if it tries to call it after the ssl module
@@ -7,13 +6,20 @@ import os
     the ssl module through gevent.monkey.patch_all before any other import, especially
     the app import, which would cause the boto module to be loaded, which would in turn
     load the ssl module.
-"""
-import gevent.monkey  # pylint: disable=wrong-import-position,wrong-import-order
 
+    isort:skip_file
+"""
+# pylint: disable=wrong-import-position,wrong-import-order
+
+import gevent.monkey
 gevent.monkey.patch_all()
-from gunicorn.app.base import BaseApplication  # pylint: disable=wrong-import-position,wrong-import-order
-from app import app as application  # pylint: disable=wrong-import-position
-from app.helpers import get_logging_cfg  # pylint: disable=wrong-import-position
+
+import os
+
+from gunicorn.app.base import BaseApplication
+
+from app import app as application
+from app.helpers import get_logging_cfg
 
 
 class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method

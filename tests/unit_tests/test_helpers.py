@@ -1,19 +1,19 @@
 import logging
 import logging.config
-import unittest
 import os
+import unittest
 
 import boto3
-
 from moto import mock_dynamodb2
 from werkzeug.exceptions import HTTPException
 
 from app import app
-from app.helpers.checks import check_params
 from app.helpers.checks import check_and_get_shortlinks_id
+from app.helpers.checks import check_params
 from app.helpers.urls import add_item
 from app.helpers.urls import create_url
 from app.helpers.urls import fetch_url
+
 logger = logging.getLogger(__name__)
 
 
@@ -85,6 +85,7 @@ class TestDynamoDb(unittest.TestCase):
         for url in self.valid_urls_list:
             uuid = (create_url(self.table, url))
             self.uuid_to_url_dict[uuid] = url
+
     """
     Quick note about checker tests parameters : 
     In flask request, request.script_root does not consider the prefix to be part of the
@@ -92,6 +93,7 @@ class TestDynamoDb(unittest.TestCase):
     receive.
     
     """
+
     def test_check_params_ok_http(self):
         with app.app_context():
             base_path = check_params(
@@ -128,10 +130,7 @@ class TestDynamoDb(unittest.TestCase):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
                 check_params(
-                    scheme='https',
-                    host='service-shortlink.dev.bgdi.ch',
-                    url=None,
-                    base_path=''
+                    scheme='https', host='service-shortlink.dev.bgdi.ch', url=None, base_path=''
                 )
                 self.assertEqual(http_error.exception.code, 400)
 
@@ -139,10 +138,7 @@ class TestDynamoDb(unittest.TestCase):
         with app.app_context():
             with self.assertRaises(HTTPException) as http_error:
                 check_params(
-                    scheme='https',
-                    host='service-shortlink.dev.bgdi.ch',
-                    url='',
-                    base_path=''
+                    scheme='https', host='service-shortlink.dev.bgdi.ch', url='', base_path=''
                 )
                 self.assertEqual(http_error.exception.code, 400)
 

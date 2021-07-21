@@ -17,9 +17,6 @@ TIMESTAMPS = .timestamps
 REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.requirements.timestamp
 DEV_REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.dev-requirements.timestamps
 
-#FIXME: put this variable in config file
-PYTHON_VERSION := 3.7.4
-SYSTEM_PYTHON_CMD := $(shell ./getPythonCmd.sh ${PYTHON_VERSION} ${PYTHON_LOCAL_DIR})
 
 # PIPENV files
 PIP_FILE = Pipfile
@@ -57,21 +54,6 @@ DOCKER_IMG_LOCAL_TAG = $(DOCKER_REGISTRY)/$(SERVICE_NAME):local-$(USER)-$(GIT_HA
 all: help
 
 # This bit check define the build/python "target": if the system has an acceptable version of python, there will be no need to install python locally.
-
-ifneq ($(SYSTEM_PYTHON_CMD),)
-build/python:
-	@echo "Using system" $(shell $(SYSTEM_PYTHON_CMD) --version 2>&1)
-	@echo $(shell $(SYSTEM_PYTHON_CMD) -c "print('OK')")
-	mkdir -p build
-	touch build/python
-else
-build/python: $(PYTHON_LOCAL_DIR)/bin/python3.7
-	@echo "Using local" $(shell $(SYSTEM_PYTHON_CMD) --version 2>&1)
-	@echo $(shell $(SYSTEM_PYTHON_CMD) -c "print('OK')")
-
-SYSTEM_PYTHON_CMD := $(PYTHON_LOCAL_DIR)/bin/python3.7
-endif
-
 
 
 .PHONY: help
@@ -167,17 +149,11 @@ dockerbuild:
 dockerpush: dockerbuild
 	docker push $(DOCKER_IMG_LOCAL_TAG)
 
-export-http-port:
-	@export HTTP_PORT=$(HTTP_PORT)
 
 .PHONY: dockerrun
-dockerrun: export-http-port
-	docker-compose up -d;
-	sleep 10
+dockerrun:
+	docker run -it -p 5000:8080 --network=host $(DOCKER_IMG_LOCAL_TAG)
 
-.PHONY: shutdown
-shutdown: export-http-port
-	docker-compose down
 
 # Cleaning functions. clean_venv will only remove the virtual environment, while clean will also remove the local python installation.
 
