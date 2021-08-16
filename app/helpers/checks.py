@@ -3,11 +3,12 @@ import logging.config
 from urllib.parse import urlparse
 
 from boto3.dynamodb.conditions import Key
+
 from flask import abort
 
-from app.helpers.response_generation import make_error_msg
 from service_config import allowed_domains
 from service_config import allowed_hosts
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,21 +41,19 @@ def check_params(scheme, host, url, base_path):
     """
     if url is None:
         logger.error('No url given to shorten, exiting with a bad request')
-        abort(make_error_msg(400, 'url parameter missing from request'))
+        abort(400, 'url parameter missing from request')
         # urls have a maximum size of 2046 character due to a dynamodb limitation
     if len(url) > 2046:
         logger.error("Url(%s) given as parameter exceeds characters limit.", url)
         abort(
-            make_error_msg(
-                400,
-                f"The url given as parameter was too long. (limit is 2046 "
-                f"characters, {len(url)} given)"
-            )
+            400,
+            f"The url given as parameter was too long. (limit is 2046 "
+            f"characters, {len(url)} given)"
         )
     hostname = urlparse(url).hostname
     if hostname is None:
         logger.error("Could not determine hostname from the following url : %s", url)
-        abort(make_error_msg(400, 'Could not determine the query hostname'))
+        abort(400, 'Could not determine the query hostname')
     domain = ".".join(hostname.split(".")[-2:])
     if domain not in allowed_domains and hostname not in allowed_hosts:
         logger.error(
@@ -66,7 +65,7 @@ def check_params(scheme, host, url, base_path):
             ', '.join(allowed_domains),
             ', '.join(allowed_hosts)
         )
-        abort(make_error_msg(400, 'Neither Host nor Domain in the url parameter are valid'))
+        abort(400, 'Neither Host nor Domain in the url parameter are valid')
     if host not in allowed_hosts:
         """
         This allows for compatibility with dev hosts or local builds for testing purpose.
@@ -75,8 +74,10 @@ def check_params(scheme, host, url, base_path):
             '://', ''
         )  # We make sure here that the :// can't get duplicated in the shorturl
         base_url = ''.join((scheme, '://', host, base_path if 'localhost' not in host else ''))
-        base_url = ''.join((base_url, 'v4/shortlink/shortlinks/' if base_url.endswith('/') else
-                            '/v4/shortlink/shortlinks/'))
+        base_url = ''.join((
+            base_url,
+            'v4/shortlink/shortlinks/' if base_url.endswith('/') else '/v4/shortlink/shortlinks/'
+        ))
     else:
         base_url = ''.join((scheme, '://s.geo.admin.ch/'))
 

@@ -1,15 +1,14 @@
 import json
 import logging
 import logging.config
-import re
 import os
+import re
 import unittest
 
 import boto3
-
 from flask_testing import TestCase
-from moto import mock_dynamodb2
 from mock import patch
+from moto import mock_dynamodb2
 
 from app import app
 from app.helpers.urls import create_url
@@ -295,9 +294,7 @@ class TestRoutes(unittest.TestCase):
         ):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
-                    f"/v4/shortlink/shortlinks/{shortid}",
-                    content_type="application/json",
-                    headers={"Origin": "map.geo.admin.ch"}
+                    f"/v4/shortlink/shortlinks/{shortid}", headers={"Origin": "map.geo.admin.ch"}
                 )
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.content_type, "application/json; charset=utf-8")
@@ -317,7 +314,6 @@ class TestRoutes(unittest.TestCase):
             for shortid, url in self.uuid_to_url_dict.items():
                 response = self.app.get(
                     f"/v4/shortlink/shortlinks/{shortid}?redirect=false",
-                    content_type="application/json",
                     headers={"Origin": "map.geo.admin.ch"}
                 )
                 self.assertEqual(response.status_code, 200)
@@ -337,7 +333,6 @@ class TestRoutes(unittest.TestCase):
         ):
             response = self.app.get(
                 "/v4/shortlink/shortlinks/nonexistent?redirect=false",
-                content_type="application/json",
                 headers={"Origin": "map.geo.admin.ch"}
             )
             self.assertEqual(response.status_code, 404)

@@ -1,20 +1,19 @@
 import json
-import re
 import logging
+import re
 import time
 
 from flask import abort
 from flask import jsonify
 from flask import make_response
-from flask import request
 from flask import redirect
+from flask import request
 
 from app import app
+from app.helpers.checks import check_params
 from app.helpers.route import prefix_route
 from app.helpers.urls import add_item
 from app.helpers.urls import fetch_url
-from app.helpers.checks import check_params
-from app.helpers.response_generation import make_error_msg
 from app.models.dynamo_db import get_dynamodb_table
 from service_config import allowed_domains_pattern
 
@@ -92,20 +91,16 @@ def create_shortlink():
             "Shortlink Error: Invalid Origin. ( %s )",
             request.headers.get('Origin', 'No origin given')
         )
-        abort(make_error_msg(403, "Not Allowed"))
+        abort(403, "Not Allowed")
     response_headers = base_response_headers
     try:
         url = request.json.get('url', None)
     except AttributeError as err:
         logger.error("No Json Received as parameter : %s", err)
-        abort(make_error_msg(400, "This service requires a json to be posted as a payload."))
+        abort(400, "This service requires a json to be posted as a payload.")
     except json.decoder.JSONDecodeError:
         logger.error("Invalid Json Received as parameter")
-        abort(
-            make_error_msg(
-                400, "The json received was malformed and could not be interpreted as a json."
-            )
-        )
+        abort(400, "The json received was malformed and could not be interpreted as a json.")
     scheme = request.scheme
     domain = request.url_root.replace(
         scheme, ''
@@ -166,7 +161,7 @@ def get_shortlink(shortlink_id):
     should_redirect = request.args.get('redirect', 'false')
     if should_redirect not in ("true", "false"):
         logger.error("redirect parameter set to a non accepted value : %s", should_redirect)
-        abort(make_error_msg(400, "accepted values for redirect parameter are true or false."))
+        abort(400, "accepted values for redirect parameter are true or false.")
     logger.debug("Redirection is set to : %s ", str(should_redirect))
     table = get_dynamodb_table()
     url = fetch_url(table, shortlink_id, request.base_url)
