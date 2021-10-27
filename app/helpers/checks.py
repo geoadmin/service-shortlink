@@ -76,7 +76,7 @@ def check_params(scheme, host, url, base_path):
         base_url = ''.join((scheme, '://', host, base_path if 'localhost' not in host else ''))
         base_url = ''.join((
             base_url,
-            'v4/shortlink/shortlinks/' if base_url.endswith('/') else '/v4/shortlink/shortlinks/'
+            'v4/shortlink/' if base_url.endswith('/') else '/v4/shortlink/'
         ))
     else:
         base_url = ''.join((scheme, '://s.geo.admin.ch/'))

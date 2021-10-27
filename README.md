@@ -59,7 +59,7 @@ the already existing shortened url instead.
 
 | Path | Method | Argument | Content Type | Content | Response Type |
 |------|--------|----------|--------------|---------|---------------|
-|/v4/shortlinks/shortlinks|POST| None | application/json| `{"url": "https://map.geo.admin.ch}` | application/json |
+|/v4/shortlinks/|POST| None | application/json| `{"url": "https://map.geo.admin.ch}` | application/json |
 
 ### URL recuperation GET
 
@@ -68,7 +68,7 @@ The redirect parameter redirect the user to the corresponding url instead if set
 
 | Path | Method | Argument | Response Type |
 |------|--------|----------|---------------|
-|v4/shortlinks/shortlinks/<shortlinks_id>|GET| optional : redirect ('true', 'false')| application/json or redirection |
+|v4/shortlinks/<shortlinks_id>|GET| optional : redirect ('true', 'false')| application/json or redirection |
 
 ## Local Development
 

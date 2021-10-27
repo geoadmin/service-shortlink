@@ -55,7 +55,7 @@ def checker():
     return response
 
 
-@app.route('/shortlinks', methods=['POST'])
+@app.route('/', methods=['POST'])
 def create_shortlink():
     """
     * Quick summary of the function *
@@ -71,7 +71,7 @@ def create_shortlink():
 
     * Abortions originating in this function *
 
-    Abort with a 400 status code if we do not receive a json in the post payloadg
+    Abort with a 400 status code if we do not receive a json in the post payload
     Abort with a 403 status code if the Origin header is not set nor one we expect.
 
     * Abortions originating in functions called from this function *
@@ -132,7 +132,7 @@ def create_shortlink():
     return response
 
 
-@app.route('/shortlinks/<shortlink_id>', methods=['GET'])
+@app.route('/<shortlink_id>', methods=['GET'])
 def get_shortlink(shortlink_id):
     """
     * Quick summary of the function *

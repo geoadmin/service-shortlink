@@ -25,7 +25,7 @@ paths:
                 example:
                   success: true
                   message: "OK"
-  /v4/shortlinks/shortlinks:
+  /v4/shortlinks/:
     post:
       summary: generate a new shortlink linking to the given url.
       operationId: createShortlink
@@ -103,7 +103,7 @@ paths:
                     message: "Write units exceeded: [error description here]}"
 
 
-  /v4/shortlinks/shortlinks/{shortlinksId}:
+  /v4/shortlinks/{shortlinksId}:
       get:
         summary: >-
         get an url from a shortlink. By default return a json, but with the redirect parameter set to true,

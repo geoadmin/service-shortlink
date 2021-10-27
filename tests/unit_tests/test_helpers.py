@@ -87,11 +87,11 @@ class TestDynamoDb(unittest.TestCase):
             self.uuid_to_url_dict[uuid] = url
 
     """
-    Quick note about checker tests parameters : 
+    Quick note about checker tests parameters :
     In flask request, request.script_root does not consider the prefix to be part of the
     base path, and url_root does not include it either. These are the parameters the function will
     receive.
-    
+
     """
 
     def test_check_params_ok_http(self):
@@ -123,7 +123,7 @@ class TestDynamoDb(unittest.TestCase):
                 base_path=''
             )
             self.assertEqual(
-                base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/shortlinks/'
+                base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/'
             )
 
     def test_check_params_nok_no_url(self):
