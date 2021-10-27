@@ -116,15 +116,7 @@ class TestDynamoDb(unittest.TestCase):
 
     def test_check_params_ok_non_standard_host(self):
         with app.app_context():
-            base_path = check_params(
-                scheme='https',
-                host='service-shortlink.dev.bgdi.ch',
-                url='https://map.geo.admin.ch/enclume',
-                base_path=''
-            )
-            self.assertEqual(
-                base_path, 'https://service-shortlink.dev.bgdi.ch/v4/shortlink/'
-            )
+            check_params(url='https://map.geo.admin.ch/enclume')
 
     def test_check_params_nok_no_url(self):
         with app.app_context():

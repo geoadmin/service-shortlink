@@ -10,7 +10,9 @@ class ReverseProxies(object):
     everything runs smoothly.
     """
 
-    def __init__(self, app, script_name=None, scheme=None, server=None, port=None):
+    def __init__(
+        self, app, script_name=None, scheme='HTTP_CLOUD_FRONT_PROTO', server=None, port=None
+    ):
         self.app = app
         self.script_name = script_name
         self.scheme = scheme

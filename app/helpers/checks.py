@@ -12,8 +12,9 @@ from service_config import allowed_hosts
 logger = logging.getLogger(__name__)
 
 
-def check_params(scheme, host, url, base_path):
+def check_params(url):
     """
+    TODO
     * Quick summary of the function *
 
     In the process to create a shortened url, this is the first step, checking all parameters. If
@@ -66,22 +67,6 @@ def check_params(scheme, host, url, base_path):
             ', '.join(allowed_hosts)
         )
         abort(400, 'Neither Host nor Domain in the url parameter are valid')
-    if host not in allowed_hosts:
-        """
-        This allows for compatibility with dev hosts or local builds for testing purpose.
-        """
-        host = host.replace(
-            '://', ''
-        )  # We make sure here that the :// can't get duplicated in the shorturl
-        base_url = ''.join((scheme, '://', host, base_path if 'localhost' not in host else ''))
-        base_url = ''.join((
-            base_url,
-            'v4/shortlink/' if base_url.endswith('/') else '/v4/shortlink/'
-        ))
-    else:
-        base_url = ''.join((scheme, '://s.geo.admin.ch/'))
-
-    return base_url
 
 
 def check_and_get_shortlinks_id(table, url):

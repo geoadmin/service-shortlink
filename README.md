@@ -47,7 +47,7 @@ This is a simple route meant to test if the server is up.
 
 | Path | Method | Argument | Response Type |
 |------|--------|----------|---------------|
-|/v4/shortlinks/checker|GET| None | application/json|
+|/checker|GET| None | application/json|
 
 
 ### Shortlink Creation POST
@@ -59,7 +59,7 @@ the already existing shortened url instead.
 
 | Path | Method | Argument | Content Type | Content | Response Type |
 |------|--------|----------|--------------|---------|---------------|
-|/v4/shortlinks/|POST| None | application/json| `{"url": "https://map.geo.admin.ch}` | application/json |
+|/|POST| None | application/json| `{"url": "https://map.geo.admin.ch}` | application/json |
 
 ### URL recuperation GET
 

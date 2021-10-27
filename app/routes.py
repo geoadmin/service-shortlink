@@ -7,20 +7,17 @@ from flask import abort
 from flask import jsonify
 from flask import make_response
 from flask import redirect
+from flask import url_for
 from flask import request
 
 from app import app
 from app.helpers.checks import check_params
-from app.helpers.route import prefix_route
 from app.helpers.urls import add_item
 from app.helpers.urls import fetch_url
 from app.models.dynamo_db import get_dynamodb_table
 from service_config import allowed_domains_pattern
 
 logger = logging.getLogger(__name__)
-
-# add route prefix
-app.route = prefix_route(app.route, '/v4/shortlink')
 
 base_response_headers = {
     'Content-Type': 'application/json; charset=utf-8',
@@ -113,11 +110,13 @@ def create_shortlink():
         domain,
         base_path
     )
-    base_response_url = check_params(scheme, domain, url, base_path)
+    check_params(url)
     table = get_dynamodb_table()
+    shortlink_id = add_item(table, url)
     response = make_response(
         jsonify({
-            "shorturl": ''.join(base_response_url + add_item(table, url)), 'success': True
+            "shorturl": url_for("get_shortlink", shortlink_id=shortlink_id, _external=True),
+            'success': True
         })
     )
     response.headers = response_headers
