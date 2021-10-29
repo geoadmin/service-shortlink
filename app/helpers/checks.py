@@ -1,13 +1,12 @@
 import logging
 import logging.config
 from urllib.parse import urlparse
+import re
+from service_config import ALLOWED_DOMAINS_PATTERN
 
 from boto3.dynamodb.conditions import Key
 
 from flask import abort
-
-from service_config import allowed_domains
-from service_config import allowed_hosts
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +24,7 @@ def check_params(url):
 
     Abort with a 400 status code if there is no url, given to shorten
     Abort with a 400 status code if the url is over 2046 characters long (dynamodb limitation)
-    Abort with a 400 status code if the application hostname can't be determined
-    Abort with a 400 status code if the application domain is not one of the allowed ones.
+    Abort with a 400 status code if the hostname of the URL parameter is not allowed.
 
     * Abortions originating in functions called from this function *
 
@@ -34,11 +32,7 @@ def check_params(url):
 
     * parameters and return values *
 
-    :param scheme: the scheme (http | https) used to make the query
-    :param host: the hostname of this service
     :param url: the url given to be shortened
-    :param base_path: the reverse proxy paths in front of this service
-    :return: the base url to reach the redirected url.
     """
     if url is None:
         logger.error('No url given to shorten, exiting with a bad request')
@@ -51,22 +45,9 @@ def check_params(url):
             f"The url given as parameter was too long. (limit is 2046 "
             f"characters, {len(url)} given)"
         )
-    hostname = urlparse(url).hostname
-    if hostname is None:
-        logger.error("Could not determine hostname from the following url : %s", url)
-        abort(400, 'Could not determine the query hostname')
-    domain = ".".join(hostname.split(".")[-2:])
-    if domain not in allowed_domains and hostname not in allowed_hosts:
-        logger.error(
-            "neither the hostname (%s) nor the domain(%s) are part of their "
-            "respective allowed list of domains (%s) or "
-            "hostnames(%s)",
-            hostname,
-            domain,
-            ', '.join(allowed_domains),
-            ', '.join(allowed_hosts)
-        )
-        abort(400, 'Neither Host nor Domain in the url parameter are valid')
+    if not re.match(ALLOWED_DOMAINS_PATTERN, urlparse(url).hostname):
+        logger.error('Hostname %s of the URL parameter is not allowed', urlparse(url).hostname)
+        abort(400, 'Host name of the URL parameter is not allowed.')
 
 
 def check_and_get_shortlinks_id(table, url):

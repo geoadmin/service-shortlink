@@ -15,7 +15,7 @@ from app.helpers.checks import check_params
 from app.helpers.urls import add_item
 from app.helpers.urls import fetch_url
 from app.models.dynamo_db import get_dynamodb_table
-from service_config import allowed_domains_pattern
+from service_config import ALLOWED_DOMAINS_PATTERN
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ def create_shortlink():
     """
     logger.debug("Shortlink Creation route entered at %f", time.time())
     if request.headers.get('Origin') is None or not \
-            re.match(allowed_domains_pattern, request.headers['Origin']):
+            re.match(ALLOWED_DOMAINS_PATTERN, request.headers['Origin']):
         logger.critical(
             "Shortlink Error: Invalid Origin. ( %s )",
             request.headers.get('Origin', 'No origin given')

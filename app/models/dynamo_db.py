@@ -4,7 +4,7 @@ import logging.config
 import boto3
 import boto3.exceptions as boto3_exc
 
-from service_config import aws_region
+from service_config import AWS_ENDPOINT_URL, aws_region
 from service_config import aws_table_name
 
 logger = logging.getLogger(__name__)
@@ -12,14 +12,17 @@ logger = logging.getLogger(__name__)
 
 class DynamodbConnection:
     # We use a singleton approach, as we do not need more than that.
-    def __init__(self, region='eu-central-1'):
+    def __init__(self, region='eu-central-1', endpoint=AWS_ENDPOINT_URL):
         self.conn = None
         self.region = region
+        self.endpoint = endpoint
 
     def get(self):
         if self.conn is None:
             try:
-                self.conn = boto3.resource('dynamodb', region_name=self.region)
+                self.conn = boto3.resource(
+                    'dynamodb', region_name=self.region, endpoint_url=self.endpoint
+                )
             except boto3_exc.Boto3Error as error:
                 logger.error(
                     'internal error during Dynamodb connection init. message is : %s', str(error)
@@ -36,6 +39,7 @@ def get_dynamodb_table():
     region = aws_region
     dyn = dynamodb_connection
     dyn.region = region
+    dyn.endpoint = AWS_ENDPOINT_URL
     conn = dyn.get()
     try:
         return conn.Table(table_name)
