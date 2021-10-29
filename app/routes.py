@@ -7,8 +7,8 @@ from flask import abort
 from flask import jsonify
 from flask import make_response
 from flask import redirect
-from flask import url_for
 from flask import request
+from flask import url_for
 
 from app import app
 from app.helpers.checks import check_params

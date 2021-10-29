@@ -1,12 +1,13 @@
 import logging
 import logging.config
-from urllib.parse import urlparse
 import re
-from service_config import ALLOWED_DOMAINS_PATTERN
+from urllib.parse import urlparse
 
 from boto3.dynamodb.conditions import Key
 
 from flask import abort
+
+from service_config import ALLOWED_DOMAINS_PATTERN
 
 logger = logging.getLogger(__name__)
 

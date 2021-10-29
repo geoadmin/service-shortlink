@@ -68,7 +68,7 @@ The redirect parameter redirect the user to the corresponding url instead if set
 
 | Path | Method | Argument | Response Type |
 |------|--------|----------|---------------|
-|v4/shortlinks/<shortlinks_id>|GET| optional : redirect ('true', 'false')| application/json or redirection |
+|/<shortlinks_id>|GET| optional : redirect ('true', 'false')| application/json or redirection |
 
 ## Local Development
 
@@ -106,6 +106,14 @@ Testing if what you developed work is made simple. You have four targets at your
     make test
 
 This command run the integration and unit tests.
+
+For testing the locally served application with the commands below, be sure to set
+ENV_FILE to .env.default and start a local DynamoDB image beforehand with:
+
+    docker-compose up &
+    export ENV_FILE=.env.default
+
+The following three make targets will serve the application locally:
 
     make serve
 
@@ -186,7 +194,5 @@ The service is configured by Environment Variable:
 | LOGGING_CFG  | logging-cfg-local.yml | Logging configuration file to use. |
 | AWS_ACCESS_KEY_ID | None | Necessary credential to access dynamodb        |
 | AWS_SECRET_ACCESS_KEY | None | AWS_SECRET_ACCESS_KEY                      | |
-| ALLOWED_DOMAINS | 'admin.ch,swisstopo.ch,bgdi.ch' | A comma separated list of allowed domains names |
-| ALLOWED_HOSTS | 'api.geo.admin.ch,api3.geo.admin.ch' | a comma separated list of allowed hostnames |
 | AWS_DYNAMODB_TABLE_NAME | 'shortlinks_test' | The dynamodb table name |
 | AWS_DYNAMODB_TABLE_REGION | 'eu-central-1' | The AWS region in which the table is hosted. |
