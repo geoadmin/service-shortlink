@@ -86,6 +86,10 @@ Then, you can run the setup target to ensure you have everything needed to devel
 
     make setup
 
+The other service that is used (DynamoDB local) is wrapped in a docker compose. Starting DynamoDB local is done with a simple
+
+    docker-compose up
+
 That's it, you're ready to work.
 
 ### Linting and formatting your work
