@@ -29,10 +29,10 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 def validate_origin():
     if 'Origin' not in request.headers:
         logger.error('Origin header is not set')
-        abort(make_error_msg(403, 'Not allowed'))
+        abort(403, 'Permission denied')
     if not re.match(ALLOWED_DOMAINS_PATTERN, request.headers['Origin']):
-        logger.error('Origin=%s is not allowed', request.headers['Origin'])
-        abort(make_error_msg(403, 'Not allowed'))
+        logger.error('Origin %s is not allowed', request.headers['Origin'])
+        abort(403, 'Permission denied')
 
 
 # Register error handler to make sure that every error returns a json answer
