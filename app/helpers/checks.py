@@ -3,6 +3,7 @@ import logging.config
 import re
 from urllib.parse import urlparse
 
+import validators
 from boto3.dynamodb.conditions import Key
 
 from flask import abort
@@ -14,12 +15,11 @@ logger = logging.getLogger(__name__)
 
 def check_params(url):
     """
-    TODO
     * Quick summary of the function *
 
-    In the process to create a shortened url, this is the first step, checking all parameters. If
-    they all fall within expectation, this function return the 'base url' that will lead to the
-    redirection link. On production, that base_url would be http(s)://s.geo.admin.ch/.
+    In the process to create a shortened url, the first step it to check the url parameter.
+    If it falls within expectation, this function will pass and  won't have a return value.
+    Otherwise an error will be raised.
 
     * Abortions originating in this function *
 
@@ -31,13 +31,16 @@ def check_params(url):
 
     None
 
-    * parameters and return values *
+    * parameter *
 
     :param url: the url given to be shortened
     """
     if url is None:
         logger.error('No url given to shorten, exiting with a bad request')
         abort(400, 'url parameter missing from request')
+    if not validators.url(url):
+        logger.error('URL %s not valid.', url)
+        abort(400, "URL(%s) given as parameter is not valid.", url)
         # urls have a maximum size of 2046 character due to a dynamodb limitation
     if len(url) > 2046:
         logger.error("Url(%s) given as parameter exceeds characters limit.", url)
