@@ -50,7 +50,7 @@ def check_params(url):
             f"characters, {len(url)} given)"
         )
     if not re.match(ALLOWED_DOMAINS_PATTERN, url):
-        logger.error('URL(%s) given as a parameter is not allowed', urlparse(url).hostname)
+        logger.error('URL(%s) given as a parameter is not allowed', url)
         abort(400, 'URL given as a parameter is not allowed.')
 
 
