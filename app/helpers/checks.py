@@ -49,9 +49,9 @@ def check_params(url):
             f"The url given as parameter was too long. (limit is 2046 "
             f"characters, {len(url)} given)"
         )
-    if not re.match(ALLOWED_DOMAINS_PATTERN, urlparse(url).hostname):
-        logger.error('Hostname %s of the URL parameter is not allowed', urlparse(url).hostname)
-        abort(400, 'Host name of the URL parameter is not allowed.')
+    if not re.match(ALLOWED_DOMAINS_PATTERN, url):
+        logger.error('URL(%s) given as a parameter is not allowed', urlparse(url).hostname)
+        abort(400, 'URL given as a parameter is not allowed.')
 
 
 def check_and_get_shortlinks_id(table, url):

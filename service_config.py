@@ -12,12 +12,9 @@ if ENV_FILE:
     print(f"Running locally hence injecting env vars from {ENV_FILE}")
     load_dotenv(ENV_FILE, override=True, verbose=True)
 
-ALLOWED_DOMAINS = [
-    r'.*\.geo\.admin\.ch',
-    r'.*bgdi\.ch',
-    r'.*\.swisstopo\.cloud',
-]
-
+# Definition of the allowed domains for CORS implementation
+ALLOWED_DOMAINS_STRING = os.getenv('ALLOWED_DOMAINS')
+ALLOWED_DOMAINS = ALLOWED_DOMAINS_STRING.split(',')
 ALLOWED_DOMAINS_PATTERN = '({})'.format('|'.join(ALLOWED_DOMAINS))
 AWS_TABLE_NAME = os.environ.get('AWS_DYNAMODB_TABLE_NAME', 'shortlinks_test')
 AWS_REGION = os.environ.get('AWS_DYNAMODB_TABLE_REGION', 'eu-central-1')
