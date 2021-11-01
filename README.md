@@ -196,3 +196,4 @@ The service is configured by Environment Variable:
 | AWS_SECRET_ACCESS_KEY | None | AWS_SECRET_ACCESS_KEY                      | |
 | AWS_DYNAMODB_TABLE_NAME | 'shortlinks_test' | The dynamodb table name |
 | AWS_DYNAMODB_TABLE_REGION | 'eu-central-1' | The AWS region in which the table is hosted. |
+| ALLOWED_DOMAINS |  | A comma separated list of allowed domains names |
