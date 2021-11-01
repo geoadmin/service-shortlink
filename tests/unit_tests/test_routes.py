@@ -98,6 +98,7 @@ class TestRoutes(unittest.TestCase):
 
     @mock_dynamodb2
     def test_create_shortlink_ok(self):
+        self.setUp()
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()
@@ -120,7 +121,9 @@ class TestRoutes(unittest.TestCase):
     The following tests should all return a 400 error code
     """
 
+    @mock_dynamodb2
     def test_create_shortlink_no_json(self):
+        self.setUp()
         response = self.app.post("/", headers={"Origin": "map.geo.admin.ch"})
         self.assertEqual(400, response.status_code)
         self.assertEqual("application/json", response.content_type)
@@ -132,7 +135,9 @@ class TestRoutes(unittest.TestCase):
         },
                          response.json)
 
+    @mock_dynamodb2
     def test_create_shortlink_no_url(self):
+        self.setUp()
         response = self.app.post(
             "/",
             data=json.dumps({}),
@@ -144,15 +149,18 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual({
             'success': False,
             'error': {
-                'code': 400, 'message': 'url parameter missing from request'
+                'code': 400, 'message': 'Url parameter missing from request'
             }
         },
                          response.json)
 
+    @mock_dynamodb2
     def test_create_shortlink_no_hostname(self):
+        self.setUp()
+        wrong_url = "/test"
         response = self.app.post(
             "/",
-            data=json.dumps({"url": "/test"}),
+            data=json.dumps({"url": f"{wrong_url}"}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
         )
@@ -163,15 +171,17 @@ class TestRoutes(unittest.TestCase):
             {
                 'success': False,
                 'error': {
-                    'code': 400, 'message': 'Could not determine the query hostname'
+                    'code': 400, 'message': f'URL({wrong_url}) given as parameter is not valid.'
                 }
             }
         )
 
-    def test_create_shortlink_non_allowed_hostname_and_domain(self):
+    @mock_dynamodb2
+    def test_create_shortlink_non_allowed_hostname(self):
+        self.setUp()
         response = self.app.post(
             "/",
-            data=json.dumps({"url": "https://not.a.valid.hostname.ch/test"}),
+            data=json.dumps({"url": "https://non-allowed.hostname.ch/test"}),
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
         )
@@ -182,13 +192,14 @@ class TestRoutes(unittest.TestCase):
             {
                 'success': False,
                 'error': {
-                    'code': 400,
-                    'message': 'Neither Host nor Domain in the url parameter are valid'
+                    'code': 400, 'message': 'URL given as a parameter is not allowed.'
                 }
             }
         )
 
+    @mock_dynamodb2
     def test_create_shortlink_url_too_long(self):
+        self.setUp()
         url = "https://map.geo.admin.ch/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/"  # pylint: disable=line-too-long
         response = self.app.post(
             "/",
@@ -213,6 +224,7 @@ class TestRoutes(unittest.TestCase):
 
     @mock_dynamodb2
     def test_redirect_shortlink_ok(self):
+        self.setUp()
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()
@@ -229,6 +241,7 @@ class TestRoutes(unittest.TestCase):
 
     @mock_dynamodb2
     def test_shortlink_fetch_nok_invalid_redirect_parameter(self):
+        self.setUp()
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()
@@ -253,6 +266,7 @@ class TestRoutes(unittest.TestCase):
     # The following test will return a 404
     @mock_dynamodb2
     def test_redirect_shortlink_url_not_found(self):
+        self.setUp()
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()
@@ -276,6 +290,7 @@ class TestRoutes(unittest.TestCase):
 
     @mock_dynamodb2
     def test_fetch_full_url_from_shortlink_ok(self):
+        self.setUp()
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()
@@ -292,6 +307,7 @@ class TestRoutes(unittest.TestCase):
 
     @mock_dynamodb2
     def test_fetch_full_url_from_shortlink_ok_explicit_parameter(self):
+        self.setUp()
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()
@@ -310,6 +326,7 @@ class TestRoutes(unittest.TestCase):
 
     @mock_dynamodb2
     def test_fetch_full_url_from_shortlink_url_not_found(self):
+        self.setUp()
         import app.models.dynamo_db as dynamo_db  # pylint: disable=import-outside-toplevel
         with patch.object(
             dynamo_db, 'get_dynamodb_table', return_value=self.__fake_get_dynamo_db()

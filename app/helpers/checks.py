@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import re
-from urllib.parse import urlparse
 
 import validators
 from boto3.dynamodb.conditions import Key
@@ -37,10 +36,10 @@ def check_params(url):
     """
     if url is None:
         logger.error('No url given to shorten, exiting with a bad request')
-        abort(400, 'url parameter missing from request')
+        abort(400, 'Url parameter missing from request')
     if not validators.url(url):
         logger.error('URL %s not valid.', url)
-        abort(400, "URL(%s) given as parameter is not valid.", url)
+        abort(400, f"URL({url}) given as parameter is not valid.")
         # urls have a maximum size of 2046 character due to a dynamodb limitation
     if len(url) > 2046:
         logger.error("Url(%s) given as parameter exceeds characters limit.", url)
