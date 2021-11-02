@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_mapping({"TRAP_HTTP_EXCEPTIONS": True})
-app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
 # Reject request from non allowed origins

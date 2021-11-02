@@ -129,7 +129,7 @@ serve: $(REQUIREMENTS_TIMESTAMP)
 
 .PHONY: gunicornserve
 gunicornserve: $(REQUIREMENTS_TIMESTAMP)
-	${PYTHON_CMD} wsgi.py
+	ENV_FILE=.env.default ${PYTHON_CMD} wsgi.py
 
 # Docker related functions.
 .PHONY: dockerlogin
