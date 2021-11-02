@@ -53,7 +53,7 @@ if __name__ == '__main__':
         'logconfig_dict': get_logging_cfg(),
         'forwarded_allow_ips': os.getenv('FORWARED_ALLOW_IPS', '*'),
         'secure_scheme_headers': {
-            os.getenv('FORWARDED_PROTO_HEADER_NAME', 'X-Forwarded-Proto'): 'https'
+            os.getenv('FORWARDED_PROTO_HEADER_NAME', 'X-Forwarded-Proto').upper(): 'https'
         }
     }
     StandaloneApplication(application, options).run()
