@@ -35,10 +35,6 @@ class TestRoutes(BaseShortlinkTestCase):
         shorturl = shorturl.replace('http://localhost/', '')
         self.assertEqual(re.search(r"^\d{12}$", shorturl) is not None, True)
 
-    """
-    The following tests should all return a 400 error code
-    """
-
     def test_create_shortlink_no_json(self):
         response = self.app.post("/", headers={"Origin": "map.geo.admin.ch"})
         self.assertEqual(400, response.status_code)
@@ -208,6 +204,28 @@ class TestRoutes(BaseShortlinkTestCase):
             'success': False
         }
         self.assertEqual(response.json, expected_json)
+
+    def test_create_shortlink_no_origin_header(self):
+        response = self.app.post("/")
+        self.assertEqual(403, response.status_code)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual({
+            'success': False, 'error': {
+                'code': 403, 'message': 'Permission denied'
+            }
+        },
+                         response.json)
+
+    def test_create_shortlink_non_allowed_origin_header(self):
+        response = self.app.post("/", headers={"Origin": "big-bad-wolf.com"})
+        self.assertEqual(403, response.status_code)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual({
+            'success': False, 'error': {
+                'code': 403, 'message': 'Permission denied'
+            }
+        },
+                         response.json)
 
 
 if __name__ == '__main__':
