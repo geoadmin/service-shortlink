@@ -102,7 +102,7 @@ def add_item(table, url):
     """
     * Quick summary of the function *
 
-    This function set a connection to a table, checks if the shortened url exists, creates it if
+    This function sets a connection to a table, checks if the shortened url exists, creates it if
     that is not the case and returns the shortened url
 
     * abortions originating in this function *

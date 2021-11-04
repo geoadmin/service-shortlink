@@ -37,9 +37,9 @@ You can find a more detailed description of the endpoints in the [OpenAPI Spec](
 
 |Environment | URL |
 |------------|-----|
-|DEV         |[]()|
-|INT         |[]()|
-|PROD        |[]()|
+|DEV         |[https://sys-s.dev.bgdi.ch/](https://sys-s.dev.bgdi.ch/)|
+|INT         |[https://sys-s.int.bgdi.ch/](https://sys-s.int.bgdi.ch/)|
+|PROD        |[https://s.geo.admin.ch/](https://s.geo.admin.ch/)|
 
 ### Checker GET
 
@@ -47,7 +47,7 @@ This is a simple route meant to test if the server is up.
 
 | Path | Method | Argument | Response Type |
 |------|--------|----------|---------------|
-|/v4/shortlinks/checker|GET| None | application/json|
+|/checker|GET| None | application/json|
 
 
 ### Shortlink Creation POST
@@ -59,7 +59,7 @@ the already existing shortened url instead.
 
 | Path | Method | Argument | Content Type | Content | Response Type |
 |------|--------|----------|--------------|---------|---------------|
-|/v4/shortlinks/shortlinks|POST| None | application/json| `{"url": "https://map.geo.admin.ch}` | application/json |
+|/|POST| None | application/json| `{"url": "https://map.geo.admin.ch}` | application/json |
 
 ### URL recuperation GET
 
@@ -68,7 +68,7 @@ The redirect parameter redirect the user to the corresponding url instead if set
 
 | Path | Method | Argument | Response Type |
 |------|--------|----------|---------------|
-|v4/shortlinks/shortlinks/<shortlinks_id>|GET| optional : redirect ('true', 'false')| application/json or redirection |
+|/<shortlinks_id>|GET| optional : redirect ('true', 'false')| application/json or redirection |
 
 ## Local Development
 
@@ -85,6 +85,10 @@ First, you'll need to clone the repo
 Then, you can run the setup target to ensure you have everything needed to develop, test and serve locally
 
     make setup
+
+The other service that is used (DynamoDB local) is wrapped in a docker compose. Starting DynamoDB local is done with a simple
+
+    docker-compose up
 
 That's it, you're ready to work.
 
@@ -106,6 +110,14 @@ Testing if what you developed work is made simple. You have four targets at your
     make test
 
 This command run the integration and unit tests.
+
+For testing the locally served application with the commands below, be sure to set
+ENV_FILE to .env.default and start a local DynamoDB image beforehand with:
+
+    docker-compose up &
+    export ENV_FILE=.env.default
+
+The following three make targets will serve the application locally:
 
     make serve
 
@@ -186,7 +198,8 @@ The service is configured by Environment Variable:
 | LOGGING_CFG  | logging-cfg-local.yml | Logging configuration file to use. |
 | AWS_ACCESS_KEY_ID | None | Necessary credential to access dynamodb        |
 | AWS_SECRET_ACCESS_KEY | None | AWS_SECRET_ACCESS_KEY                      | |
-| ALLOWED_DOMAINS | 'admin.ch,swisstopo.ch,bgdi.ch' | A comma separated list of allowed domains names |
-| ALLOWED_HOSTS | 'api.geo.admin.ch,api3.geo.admin.ch' | a comma separated list of allowed hostnames |
 | AWS_DYNAMODB_TABLE_NAME | 'shortlinks_test' | The dynamodb table name |
 | AWS_DYNAMODB_TABLE_REGION | 'eu-central-1' | The AWS region in which the table is hosted. |
+| ALLOWED_DOMAINS | `.*` | A comma separated list of allowed domains names |
+| FORWARED_ALLOW_IPS | `*` | Sets the gunicorn `forwarded_allow_ips` (see https://docs.gunicorn.org/en/stable/settings.html#forwarded-allow-ips). This is required in order to `secure_scheme_headers` works. |
+| FORWARDED_PROTO_HEADER_NAME | `X-Forwarded-Proto` | Sets gunicorn `secure_scheme_headers` parameter to `{FORWARDED_PROTO_HEADER_NAME: 'https'}`, see https://docs.gunicorn.org/en/stable/settings.html#secure-scheme-headers. |

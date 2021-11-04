@@ -120,16 +120,16 @@ format-lint: format lint
 .PHONY: test
 test: $(DEV_REQUIREMENTS_TIMESTAMP)
 	mkdir -p $(TEST_REPORT_DIR)
-	$(NOSE_CMD) -c tests/unittest.cfg --plugin nose2.plugins.junitxml --junit-xml --junit-xml-path $(TEST_REPORT_DIR)/$(TEST_REPORT_FILE) -s tests/
+	ENV_FILE=.env.testing $(NOSE_CMD) -c tests/unittest.cfg --plugin nose2.plugins.junitxml --junit-xml --junit-xml-path $(TEST_REPORT_DIR)/$(TEST_REPORT_FILE) -s tests/
 
 # Serve targets. Using these will run the application on your local machine. You can either serve with a wsgi front (like it would be within the container), or without.
 .PHONY: serve
 serve: $(REQUIREMENTS_TIMESTAMP)
-	FLASK_APP=service_launcher FLASK_DEBUG=1 $(FLASK_CMD) run --host=0.0.0.0 --port=$(HTTP_PORT)
+	ENV_FILE=.env.default FLASK_APP=service_launcher FLASK_DEBUG=1 $(FLASK_CMD) run --host=0.0.0.0 --port=$(HTTP_PORT)
 
 .PHONY: gunicornserve
 gunicornserve: $(REQUIREMENTS_TIMESTAMP)
-	${PYTHON_CMD} wsgi.py
+	ENV_FILE=.env.default ${PYTHON_CMD} wsgi.py
 
 # Docker related functions.
 .PHONY: dockerlogin
@@ -152,7 +152,7 @@ dockerpush: dockerbuild
 
 .PHONY: dockerrun
 dockerrun:
-	docker run -it -p 5000:8080 --network=host $(DOCKER_IMG_LOCAL_TAG)
+	docker run -it -p 5000:8080 --network=host --env-file=.env.default $(DOCKER_IMG_LOCAL_TAG)
 
 
 # Cleaning functions. clean_venv will only remove the virtual environment, while clean will also remove the local python installation.

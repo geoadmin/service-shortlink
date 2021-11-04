@@ -1,12 +1,15 @@
 import logging
+import re
 
 from werkzeug.exceptions import HTTPException
 
 from flask import Flask
+from flask import abort
+from flask import request
 
 from app.helpers import init_logging
 from app.helpers.response_generation import make_error_msg
-from app.middleware import ReverseProxies
+from app.settings import ALLOWED_DOMAINS_PATTERN
 
 #initialize logging using JSON as a format.
 init_logging()
@@ -17,7 +20,17 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_mapping({"TRAP_HTTP_EXCEPTIONS": True})
-app.wsgi_app = ReverseProxies(app.wsgi_app, script_name='/')
+
+
+# Reject request from non allowed origins
+@app.before_request
+def validate_origin():
+    if 'Origin' not in request.headers:
+        logger.error('Origin header is not set')
+        abort(403, 'Permission denied')
+    if not re.match(ALLOWED_DOMAINS_PATTERN, request.headers['Origin']):
+        logger.error('Origin %s is not allowed', request.headers['Origin'])
+        abort(403, 'Permission denied')
 
 
 # Register error handler to make sure that every error returns a json answer
