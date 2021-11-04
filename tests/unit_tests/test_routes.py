@@ -5,6 +5,7 @@ import re
 import unittest
 
 from flask_testing import TestCase
+from flask import url_for
 
 from tests.unit_tests.base import BaseShortlinkTestCase
 
@@ -15,16 +16,15 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_checker_ok(self):
         # checker
-        response = self.app.get("/checker", headers={"Origin": "map.geo.admin.ch"})
+        response = self.app.get(url_for('checker'), headers={"Origin": "map.geo.admin.ch"})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content_type, "application/json; charset=utf-8")
         self.assertEqual(response.json, {'success': True, 'message': 'OK'})
 
     def test_create_shortlink_ok(self):
         response = self.app.post(
-            "/",
-            data=json.dumps({"url": "https://map.geo.admin.ch/test"}),
-            content_type="application/json",
+            url_for('create_shortlink'),
+            json={"url": "https://map.geo.admin.ch/test"},
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 200)
@@ -36,7 +36,9 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertEqual(re.search(r"^\d{12}$", shorturl) is not None, True)
 
     def test_create_shortlink_no_json(self):
-        response = self.app.post("/", headers={"Origin": "map.geo.admin.ch"})
+        response = self.app.post(
+            url_for('create_shortlink'), headers={"Origin": "map.geo.admin.ch"}
+        )
         self.assertEqual(400, response.status_code)
         self.assertEqual("application/json", response.content_type)
         self.assertEqual({
@@ -49,10 +51,7 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_create_shortlink_no_url(self):
         response = self.app.post(
-            "/",
-            data=json.dumps({}),
-            content_type="application/json",
-            headers={"Origin": "map.geo.admin.ch"}
+            url_for('create_shortlink'), json={}, headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(400, response.status_code)
         self.assertEqual("application/json", response.content_type)
@@ -67,9 +66,8 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_create_shortlink_no_hostname(self):
         wrong_url = "/test"
         response = self.app.post(
-            "/",
-            data=json.dumps({"url": f"{wrong_url}"}),
-            content_type="application/json",
+            url_for('create_shortlink'),
+            json={"url": f"{wrong_url}"},
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 400)
@@ -86,9 +84,8 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_create_shortlink_non_allowed_hostname(self):
         response = self.app.post(
-            "/",
-            data=json.dumps({"url": "https://non-allowed.hostname.ch/test"}),
-            content_type="application/json",
+            url_for('create_shortlink'),
+            json={"url": "https://non-allowed.hostname.ch/test"},
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 400)
@@ -106,8 +103,8 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_create_shortlink_url_too_long(self):
         url = self.invalid_urls_list[0]
         response = self.app.post(
-            "/",
-            data=json.dumps({"url": url}),
+            url_for('create_shortlink'),
+            json={"url": url},
             content_type="application/json",
             headers={"Origin": "map.geo.admin.ch"}
         )
@@ -129,8 +126,8 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_redirect_shortlink_ok(self):
         for shortid, url in self.uuid_to_url_dict.items():
             response = self.app.get(
-                f"/{shortid}?redirect=true",
-                content_type="text/html",
+                url_for('get_shortlink', shortlink_id=shortid),
+                query_string={'redirect': 'true'},
                 headers={"Origin": "map.geo.admin.ch"}
             )
             self.assertEqual(response.status_code, 301)
@@ -140,7 +137,8 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_shortlink_fetch_nok_invalid_redirect_parameter(self):
         for shortid, _ in self.uuid_to_url_dict.items():
             response = self.app.get(
-                f"/{shortid}?redirect=banana",
+                url_for('get_shortlink', shortlink_id=shortid),
+                query_string={'redirect': 'banana'},
                 content_type="text/html",
                 headers={"Origin": "map.geo.admin.ch"}
             )
@@ -157,7 +155,7 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_redirect_shortlink_url_not_found(self):
         response = self.app.get(
-            "/nonexistent",
+            url_for('get_shortlink', shortlink_id='nonexistent'),
             content_type="text/html; charset=utf-8",
             headers={"Origin": "map.geo.admin.ch"}
         )
@@ -175,7 +173,10 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_fetch_full_url_from_shortlink_ok(self):
         for shortid, url in self.uuid_to_url_dict.items():
-            response = self.app.get(f"/{shortid}", headers={"Origin": "map.geo.admin.ch"})
+            response = self.app.get(
+                url_for('get_shortlink', shortlink_id=shortid),
+                headers={"Origin": "map.geo.admin.ch"}
+            )
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.content_type, "application/json; charset=utf-8")
             self.assertEqual(response.json, {'shorturl': shortid, 'full_url': url, 'success': True})
@@ -183,7 +184,9 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_fetch_full_url_from_shortlink_ok_explicit_parameter(self):
         for shortid, url in self.uuid_to_url_dict.items():
             response = self.app.get(
-                f"/{shortid}?redirect=false", headers={"Origin": "map.geo.admin.ch"}
+                url_for('get_shortlink', shortlink_id=shortid),
+                query_string={'redirect': 'false'},
+                headers={"Origin": "map.geo.admin.ch"}
             )
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.content_type, "application/json; charset=utf-8")
@@ -191,7 +194,9 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_fetch_full_url_from_shortlink_url_not_found(self):
         response = self.app.get(
-            "/nonexistent?redirect=false", headers={"Origin": "map.geo.admin.ch"}
+            url_for('get_shortlink', shortlink_id='nonexistent'),
+            query_string={'redirect': 'false'},
+            headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.content_type, "application/json")
