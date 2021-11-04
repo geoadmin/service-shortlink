@@ -2,7 +2,6 @@ import logging
 import re
 
 from werkzeug.exceptions import HTTPException
-from werkzeug.middleware.proxy_fix import ProxyFix
 
 from flask import Flask
 from flask import abort
@@ -10,7 +9,7 @@ from flask import request
 
 from app.helpers import init_logging
 from app.helpers.response_generation import make_error_msg
-from service_config import ALLOWED_DOMAINS_PATTERN
+from app.settings import ALLOWED_DOMAINS_PATTERN
 
 #initialize logging using JSON as a format.
 init_logging()

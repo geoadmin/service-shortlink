@@ -200,6 +200,6 @@ The service is configured by Environment Variable:
 | AWS_SECRET_ACCESS_KEY | None | AWS_SECRET_ACCESS_KEY                      | |
 | AWS_DYNAMODB_TABLE_NAME | 'shortlinks_test' | The dynamodb table name |
 | AWS_DYNAMODB_TABLE_REGION | 'eu-central-1' | The AWS region in which the table is hosted. |
-| ALLOWED_DOMAINS |  | A comma separated list of allowed domains names |
+| ALLOWED_DOMAINS | `.*` | A comma separated list of allowed domains names |
 | FORWARED_ALLOW_IPS | `*` | Sets the gunicorn `forwarded_allow_ips` (see https://docs.gunicorn.org/en/stable/settings.html#forwarded-allow-ips). This is required in order to `secure_scheme_headers` works. |
 | FORWARDED_PROTO_HEADER_NAME | `X-Forwarded-Proto` | Sets gunicorn `secure_scheme_headers` parameter to `{FORWARDED_PROTO_HEADER_NAME: 'https'}`, see https://docs.gunicorn.org/en/stable/settings.html#secure-scheme-headers. |

@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 import time
 
 from flask import abort
@@ -15,7 +14,6 @@ from app.helpers.checks import check_params
 from app.helpers.urls import add_item
 from app.helpers.urls import fetch_url
 from app.models.dynamo_db import get_dynamodb_table
-from service_config import ALLOWED_DOMAINS_PATTERN
 
 logger = logging.getLogger(__name__)
 
@@ -82,13 +80,6 @@ def create_shortlink():
     :return: a json in response which contains the url which will redirect to the initial url
     """
     logger.debug("Shortlink Creation route entered at %f", time.time())
-    if request.headers.get('Origin') is None or not \
-            re.match(ALLOWED_DOMAINS_PATTERN, request.headers['Origin']):
-        logger.critical(
-            "Shortlink Error: Invalid Origin. ( %s )",
-            request.headers.get('Origin', 'No origin given')
-        )
-        abort(403, "Not Allowed")
     response_headers = base_response_headers
     try:
         url = request.json.get('url', None)
@@ -99,17 +90,7 @@ def create_shortlink():
         logger.error("Invalid Json Received as parameter")
         abort(400, "The json received was malformed and could not be interpreted as a json.")
     scheme = request.scheme
-    domain = request.url_root.replace(
-        scheme, ''
-    )  # this will return the root url without the scheme
-    base_path = request.script_root
-    logger.debug(
-        "params received are : url: %s, scheme: %s, domain: %s, base_path: %s",
-        url,
-        scheme,
-        domain,
-        base_path
-    )
+    logger.debug("params received are : url: %s", url)
     check_params(url)
     table = get_dynamodb_table()
     shortlink_id = add_item(table, url)

@@ -7,7 +7,7 @@ from boto3.dynamodb.conditions import Key
 
 from flask import abort
 
-from service_config import ALLOWED_DOMAINS_PATTERN
+from app.settings import ALLOWED_DOMAINS_PATTERN
 
 logger = logging.getLogger(__name__)
 

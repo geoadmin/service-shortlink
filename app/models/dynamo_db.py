@@ -4,9 +4,9 @@ import logging.config
 import boto3
 import boto3.exceptions as boto3_exc
 
-from service_config import AWS_ENDPOINT_URL
-from service_config import AWS_REGION
-from service_config import AWS_TABLE_NAME
+from app.settings import AWS_ENDPOINT_URL
+from app.settings import AWS_REGION
+from app.settings import AWS_TABLE_NAME
 
 logger = logging.getLogger(__name__)
 

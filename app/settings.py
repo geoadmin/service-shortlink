@@ -1,5 +1,4 @@
 import os
-
 """
 The Config contains everything needed to run the service. Most entries have a default
 value and an environment value to override it.
@@ -13,7 +12,7 @@ if ENV_FILE:
     load_dotenv(ENV_FILE, override=True, verbose=True)
 
 # Definition of the allowed domains for CORS implementation
-ALLOWED_DOMAINS_STRING = os.getenv('ALLOWED_DOMAINS')
+ALLOWED_DOMAINS_STRING = os.getenv('ALLOWED_DOMAINS', '.*')
 ALLOWED_DOMAINS = ALLOWED_DOMAINS_STRING.split(',')
 ALLOWED_DOMAINS_PATTERN = '({})'.format('|'.join(ALLOWED_DOMAINS))
 AWS_TABLE_NAME = os.environ.get('AWS_DYNAMODB_TABLE_NAME', 'shortlinks_test')

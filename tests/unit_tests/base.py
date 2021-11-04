@@ -5,9 +5,9 @@ import boto3
 
 from app import app
 from app.helpers.urls import create_url
-from service_config import AWS_ENDPOINT_URL
-from service_config import AWS_REGION
-from service_config import AWS_TABLE_NAME
+from app.settings import AWS_ENDPOINT_URL
+from app.settings import AWS_REGION
+from app.settings import AWS_TABLE_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +72,8 @@ class BaseShortlinkTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # pylint: disable=line-too-long
+        cls.context = app.test_request_context()
+        cls.context.push()
         cls.app = app.test_client()
         cls.valid_urls_list = [
             "https://map.geo.admin.ch/?lang=fr&topic=ech&bgLayer=ch.swisstopo.pixelkarte-farbe&layers=ch.swisstopo.zeitreihen,ch.bfs.gebaeude_wohnungs_register,ch.bav.haltestellen-oev,ch.swisstopo.swisstlm3d-wanderwege&layers_opacity=1,1,1,0.8&layers_visibility=false,false,false,false&layers_timestamp=18641231,,,",
