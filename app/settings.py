@@ -1,4 +1,5 @@
 import os
+
 """
 The Config contains everything needed to run the service. Most entries have a default
 value and an environment value to override it.
@@ -15,6 +16,6 @@ if ENV_FILE:
 ALLOWED_DOMAINS_STRING = os.getenv('ALLOWED_DOMAINS', '.*')
 ALLOWED_DOMAINS = ALLOWED_DOMAINS_STRING.split(',')
 ALLOWED_DOMAINS_PATTERN = '({})'.format('|'.join(ALLOWED_DOMAINS))
-AWS_TABLE_NAME = os.environ.get('AWS_DYNAMODB_TABLE_NAME', 'shortlinks_test')
-AWS_REGION = os.environ.get('AWS_DYNAMODB_TABLE_REGION', 'eu-central-1')
+AWS_DYNAMODB_TABLE_NAME = os.environ.get('AWS_DYNAMODB_TABLE_NAME')
+AWS_DEFAULT_REGION = os.environ.get('AWS_DEFAULT_REGION', 'eu-central-1')
 AWS_ENDPOINT_URL = os.environ.get('AWS_ENDPOINT_URL', None)
