@@ -5,9 +5,9 @@ import boto3
 
 from app import app
 from app.helpers.urls import create_url
+from app.settings import AWS_DEFAULT_REGION
+from app.settings import AWS_DYNAMODB_TABLE_NAME
 from app.settings import AWS_ENDPOINT_URL
-from app.settings import AWS_REGION
-from app.settings import AWS_TABLE_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +18,11 @@ def create_dynamodb():
     Returns:
         dynamodb: dynamodb resource'''
     try:
-        dynamodb = boto3.resource('dynamodb', region_name=AWS_REGION, endpoint_url=AWS_ENDPOINT_URL)
+        dynamodb = boto3.resource(
+            'dynamodb', region_name=AWS_DEFAULT_REGION, endpoint_url=AWS_ENDPOINT_URL
+        )
         dynamodb.create_table(
-            TableName=AWS_TABLE_NAME,
+            TableName=AWS_DYNAMODB_TABLE_NAME,
             AttributeDefinitions=[
                 {
                     'AttributeName': 'url', 'AttributeType': 'S'
@@ -62,9 +64,9 @@ def create_dynamodb():
             }
         )
     except dynamodb.meta.client.exceptions.ResourceInUseException as err:
-        logger.debug("Table %s already exists but should not.", AWS_TABLE_NAME)
+        logger.debug("Table %s already exists but should not.", AWS_DYNAMODB_TABLE_NAME)
         raise err
-    return dynamodb.Table(AWS_TABLE_NAME)
+    return dynamodb.Table(AWS_DYNAMODB_TABLE_NAME)
 
 
 class BaseShortlinkTestCase(unittest.TestCase):

@@ -4,9 +4,9 @@ import logging.config
 import boto3
 import boto3.exceptions as boto3_exc
 
+from app.settings import AWS_DEFAULT_REGION
+from app.settings import AWS_DYNAMODB_TABLE_NAME
 from app.settings import AWS_ENDPOINT_URL
-from app.settings import AWS_REGION
-from app.settings import AWS_TABLE_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +36,9 @@ dynamodb_connection = DynamodbConnection()
 
 
 def get_dynamodb_table():
-    table_name = AWS_TABLE_NAME
-    region = AWS_REGION
+    table_name = AWS_DYNAMODB_TABLE_NAME
     dyn = dynamodb_connection
-    dyn.region = region
+    dyn.region = AWS_DEFAULT_REGION
     dyn.endpoint = AWS_ENDPOINT_URL
     conn = dyn.get()
     try:
