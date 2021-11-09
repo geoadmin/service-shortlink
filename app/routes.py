@@ -89,7 +89,6 @@ def create_shortlink():
     except json.decoder.JSONDecodeError:
         logger.error("Invalid Json Received as parameter")
         abort(400, "The json received was malformed and could not be interpreted as a json.")
-    scheme = request.scheme
     logger.debug("params received are : url: %s", url)
     check_params(url)
     table = get_dynamodb_table()
