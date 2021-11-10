@@ -6,10 +6,13 @@ from werkzeug.exceptions import HTTPException
 from flask import Flask
 from flask import abort
 from flask import request
+from flask import url_for
 
 from app.helpers import init_logging
 from app.helpers.response_generation import make_error_msg
 from app.settings import ALLOWED_DOMAINS_PATTERN
+from app.settings import CACHE_CONTROL
+from app.settings import CACHE_CONTROL_4XX
 
 #initialize logging using JSON as a format.
 init_logging()
@@ -31,6 +34,37 @@ def validate_origin():
     if not re.match(ALLOWED_DOMAINS_PATTERN, request.headers['Origin']):
         logger.error('Origin %s is not allowed', request.headers['Origin'])
         abort(403, 'Permission denied')
+
+
+@app.after_request
+def add_charset(response):
+    # Python uses UTF-8 as charset by default
+    if response.headers.get('Content-Type') == 'application/json':
+        response.headers.set('Content-Type', 'application/json; charset=utf-8')
+    return response
+
+
+# Add CORS Headers to all request
+@app.after_request
+def add_cors_header(response):
+    if (
+        'Origin' in request.headers and
+        re.match(ALLOWED_DOMAINS_PATTERN, request.headers['Origin'])
+    ):
+        response.headers.set('Access-Control-Allow-Origin', request.headers['Origin'])
+        response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
+    return response
+
+
+@app.after_request
+def add_cache_control_header(response):
+    # For /checker route we let the frontend proxy decide how to cache it.
+    if request.method == 'GET' and request.path != url_for('checker'):
+        if response.status_code >= 400:
+            response.headers.set('Cache-Control', CACHE_CONTROL_4XX)
+        else:
+            response.headers.set('Cache-Control', CACHE_CONTROL)
+    return response
 
 
 # Register error handler to make sure that every error returns a json answer
