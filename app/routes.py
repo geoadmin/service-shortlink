@@ -42,7 +42,7 @@ def checker():
     return response
 
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['POST', 'OPTIONS'])
 def create_shortlink():
     """
     * Quick summary of the function *
@@ -72,6 +72,10 @@ def create_shortlink():
     :return: a json in response which contains the url which will redirect to the initial url
     """
     logger.debug("Shortlink Creation route entered at %f", time.time())
+    
+    if request.method == 'OPTIONS':
+        return make_response()
+    
     try:
         url = request.json.get('url', None)
     except AttributeError as err:
