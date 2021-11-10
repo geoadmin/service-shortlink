@@ -27,7 +27,7 @@ class TestRoutes(BaseShortlinkTestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content_type, "application/json; charset=utf-8")
-        self.assertEqual(response.data, '')
+        self.assertEqual(response.data.decode("utf-8"), '')
 
     def test_create_shortlink_ok(self):
         response = self.app.post(
