@@ -50,7 +50,7 @@ def checker():
     return response
 
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['OPTIONS', 'POST'])
 def create_shortlink():
     """
     * Quick summary of the function *
@@ -81,33 +81,37 @@ def create_shortlink():
     """
     logger.debug("Shortlink Creation route entered at %f", time.time())
     response_headers = base_response_headers
-    try:
-        url = request.json.get('url', None)
-    except AttributeError as err:
-        logger.error("No Json Received as parameter : %s", err)
-        abort(400, "This service requires a json to be posted as a payload.")
-    except json.decoder.JSONDecodeError:
-        logger.error("Invalid Json Received as parameter")
-        abort(400, "The json received was malformed and could not be interpreted as a json.")
-    logger.debug("params received are : url: %s", url)
-    check_params(url)
-    table = get_dynamodb_table()
-    shortlink_id = add_item(table, url)
-    response = make_response(
-        jsonify({
-            "shorturl": url_for("get_shortlink", shortlink_id=shortlink_id, _external=True),
-            'success': True
-        })
-    )
+    if request.method == 'POST':
+        try:
+            url = request.json.get('url', None)
+        except AttributeError as err:
+            logger.error("No Json Received as parameter : %s", err)
+            abort(400, "This service requires a json to be posted as a payload.")
+        except json.decoder.JSONDecodeError:
+            logger.error("Invalid Json Received as parameter")
+            abort(400, "The json received was malformed and could not be interpreted as a json.")
+        logger.debug("params received are : url: %s", url)
+        check_params(url)
+        table = get_dynamodb_table()
+        shortlink_id = add_item(table, url)
+        response = make_response(
+            jsonify({
+                "shorturl": url_for("get_shortlink", shortlink_id=shortlink_id, _external=True),
+                'success': True
+            })
+        )
+
+        logger.info(
+            "Shortlink Creation Successful.", extra={"response": json.loads(response.get_data())}
+        )
+    else:
+        response = make_response()
     response.headers = response_headers
     response_headers['Access-Control-Allow-Origin'] = request.headers['origin']
     response_headers['Access-Control-Allow-Methods'] = 'POST, OPTION'
     response_headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization,' \
                                                        ' x-requested-with, Origin, Accept'
 
-    logger.info(
-        "Shortlink Creation Successful.", extra={"response": json.loads(response.get_data())}
-    )
     return response
 
 

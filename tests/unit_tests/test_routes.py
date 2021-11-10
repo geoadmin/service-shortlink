@@ -21,6 +21,14 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertEqual(response.content_type, "application/json; charset=utf-8")
         self.assertEqual(response.json, {'success': True, 'message': 'OK'})
 
+    def test_create_shortlink_options(self):
+        response = self.app.options(
+            url_for('create_shortlink'), headers={"Origin": "map.geo.admin.ch"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, "application/json; charset=utf-8")
+        self.assertEqual(response.data, '')
+
     def test_create_shortlink_ok(self):
         response = self.app.post(
             url_for('create_shortlink'),
