@@ -29,11 +29,5 @@ def make_error_msg(code, msg):
             }
         }),
         code,
-        {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, OPTION',
-            'Access-Control-Allow-Headers':
-                'Content-Type, Authorization, x-requested-with, Origin, Accept'
-        }
     )
     return response

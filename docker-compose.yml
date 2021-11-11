@@ -1,6 +1,68 @@
-version: "2"
+version: "3.4"
 services:
-  app:
-    image: swisstopo/service-shortlink:local
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -sharedDb"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
     ports:
-      - "${HTTP_PORT}:8080"
+      - "8080:8000"
+  init-dynamo:
+    image: amazon/aws-cli
+    command:
+      - dynamodb
+      - create-table
+      - --table-name
+      - test-db
+      - --attribute-definitions
+      - >-
+        [{
+          "AttributeName": "url",
+          "AttributeType": "S"
+        }, {
+          "AttributeName": "shortlinks_id",
+          "AttributeType": "S"
+        }]
+      - --key-schema
+      - AttributeName=url,KeyType=HASH
+      - --global-secondary-indexes
+      - >-
+       {
+          "IndexName": "ShortlinksIndex",
+          "KeySchema": [{
+            "AttributeName": "shortlinks_id",
+            "KeyType": "HASH"
+            }
+            ],
+          "Projection": {
+            "ProjectionType": "ALL"
+          },
+          "ProvisionedThroughput": {
+            "ReadCapacityUnits": 1,
+            "WriteCapacityUnits": 1
+          }
+        }
+      - >-
+        {
+          "IndexName": "UrlIndex",
+          "KeySchema": [{
+            "AttributeName": "url",
+            "KeyType": "HASH"
+          }],
+          "Projection": {
+            "ProjectionType": "ALL"
+          },
+          "ProvisionedThroughput": {
+            "ReadCapacityUnits": 1,
+            "WriteCapacityUnits": 1
+          }
+        }
+      - --provisioned-throughput
+      - ReadCapacityUnits=1,WriteCapacityUnits=1
+      - --endpoint-url
+      - http://dynamodb-local:8000
+    links:
+      - dynamodb-local
+    environment:
+      - AWS_ACCESS_KEY_ID=dummy-123
+      - AWS_SECRET_ACCESS_KEY=dummy-123
+      - AWS_DEFAULT_REGION=wonderland

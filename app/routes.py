@@ -1,34 +1,21 @@
 import json
-import re
 import logging
 import time
 
 from flask import abort
 from flask import jsonify
 from flask import make_response
-from flask import request
 from flask import redirect
+from flask import request
+from flask import url_for
 
 from app import app
-from app.helpers.route import prefix_route
+from app.helpers.checks import check_params
 from app.helpers.urls import add_item
 from app.helpers.urls import fetch_url
-from app.helpers.checks import check_params
-from app.helpers.response_generation import make_error_msg
 from app.models.dynamo_db import get_dynamodb_table
-from service_config import allowed_domains_pattern
 
 logger = logging.getLogger(__name__)
-
-# add route prefix
-app.route = prefix_route(app.route, '/v4/shortlink')
-
-base_response_headers = {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTION',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-requested-with, Origin, Accept'
-}
 
 
 @app.route('/checker', methods=['GET'])
@@ -52,11 +39,10 @@ def checker():
     """
     logger.debug("Checker route entered at %f", time.time())
     response = make_response(jsonify({'success': True, 'message': 'OK'}), 200)
-    response.headers = base_response_headers
     return response
 
 
-@app.route('/shortlinks', methods=['POST'])
+@app.route('/', methods=['POST'])
 def create_shortlink():
     """
     * Quick summary of the function *
@@ -72,7 +58,7 @@ def create_shortlink():
 
     * Abortions originating in this function *
 
-    Abort with a 400 status code if we do not receive a json in the post payloadg
+    Abort with a 400 status code if we do not receive a json in the post payload
     Abort with a 403 status code if the Origin header is not set nor one we expect.
 
     * Abortions originating in functions called from this function *
@@ -86,50 +72,24 @@ def create_shortlink():
     :return: a json in response which contains the url which will redirect to the initial url
     """
     logger.debug("Shortlink Creation route entered at %f", time.time())
-    if request.headers.get('Origin') is None or not \
-            re.match(allowed_domains_pattern, request.headers['Origin']):
-        logger.critical(
-            "Shortlink Error: Invalid Origin. ( %s )",
-            request.headers.get('Origin', 'No origin given')
-        )
-        abort(make_error_msg(403, "Not Allowed"))
-    response_headers = base_response_headers
     try:
         url = request.json.get('url', None)
     except AttributeError as err:
         logger.error("No Json Received as parameter : %s", err)
-        abort(make_error_msg(400, "This service requires a json to be posted as a payload."))
+        abort(400, "This service requires a json to be posted as a payload.")
     except json.decoder.JSONDecodeError:
         logger.error("Invalid Json Received as parameter")
-        abort(
-            make_error_msg(
-                400, "The json received was malformed and could not be interpreted as a json."
-            )
-        )
-    scheme = request.scheme
-    domain = request.url_root.replace(
-        scheme, ''
-    )  # this will return the root url without the scheme
-    base_path = request.script_root
-    logger.debug(
-        "params received are : url: %s, scheme: %s, domain: %s, base_path: %s",
-        url,
-        scheme,
-        domain,
-        base_path
-    )
-    base_response_url = check_params(scheme, domain, url, base_path)
+        abort(400, "The json received was malformed and could not be interpreted as a json.")
+    logger.debug("params received are : url: %s", url)
+    check_params(url)
     table = get_dynamodb_table()
+    shortlink_id = add_item(table, url)
     response = make_response(
         jsonify({
-            "shorturl": ''.join(base_response_url + add_item(table, url)), 'success': True
+            "shorturl": url_for("get_shortlink", shortlink_id=shortlink_id, _external=True),
+            'success': True
         })
     )
-    response.headers = response_headers
-    response_headers['Access-Control-Allow-Origin'] = request.headers['origin']
-    response_headers['Access-Control-Allow-Methods'] = 'POST, OPTION'
-    response_headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization,' \
-                                                       ' x-requested-with, Origin, Accept'
 
     logger.info(
         "Shortlink Creation Successful.", extra={"response": json.loads(response.get_data())}
@@ -137,14 +97,14 @@ def create_shortlink():
     return response
 
 
-@app.route('/shortlinks/<shortlink_id>', methods=['GET'])
+@app.route('/<shortlink_id>', methods=['GET'])
 def get_shortlink(shortlink_id):
     """
     * Quick summary of the function *
 
     This route checks the shortened url id  and redirect the user to the full url
     if the redirect parameter is set. If that's not the case,
-    it will return a json containing the informations
+    it will return a json containing the information
     about the url
 
     * Abortions originating in this function *
@@ -166,7 +126,7 @@ def get_shortlink(shortlink_id):
     should_redirect = request.args.get('redirect', 'false')
     if should_redirect not in ("true", "false"):
         logger.error("redirect parameter set to a non accepted value : %s", should_redirect)
-        abort(make_error_msg(400, "accepted values for redirect parameter are true or false."))
+        abort(400, "accepted values for redirect parameter are true or false.")
     logger.debug("Redirection is set to : %s ", str(should_redirect))
     table = get_dynamodb_table()
     url = fetch_url(table, shortlink_id, request.base_url)
@@ -175,5 +135,4 @@ def get_shortlink(shortlink_id):
         return redirect(url, code=301)
     logger.info("fetched the following url : %s", url)
     response = make_response(jsonify({'shorturl': shortlink_id, 'full_url': url, 'success': True}))
-    response.headers = base_response_headers
     return response
