@@ -53,7 +53,7 @@ def add_generic_cors_header(response):
         response.headers.set('Access-Control-Allow-Origin', request.headers['Origin'])
     # Always add the allowed methods.
     response.headers.set(
-        'Access-Control-Allow-Methods', ','.join(get_registered_method(app, request.endpoint))
+        'Access-Control-Allow-Methods', ', '.join(get_registered_method(app, request.endpoint))
     )
     response.headers.set('Access-Control-Allow-Headers', '*')
     return response
