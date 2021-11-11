@@ -102,10 +102,9 @@ def get_shortlink(shortlink_id):
     """
     * Quick summary of the function *
 
-    This route checks the shortened url id  and redirect the user to the full url
-    if the redirect parameter is set. If that's not the case,
-    it will return a json containing the information
-    about the url
+    This route checks the shortened url id  and redirect the user to the full url.
+    When the redirect query parameter is set to false, it will return a json containing
+    the information about the url.
 
     * Abortions originating in this function *
 
@@ -123,7 +122,7 @@ def get_shortlink(shortlink_id):
     :return: a redirection to the full url or a json with the full url
     """
     logger.debug("Entry in shortlinks fetch at %f with url_id %s", time.time(), shortlink_id)
-    should_redirect = request.args.get('redirect', 'false')
+    should_redirect = request.args.get('redirect', 'true')
     if should_redirect not in ("true", "false"):
         logger.error("redirect parameter set to a non accepted value : %s", should_redirect)
         abort(400, "accepted values for redirect parameter are true or false.")
