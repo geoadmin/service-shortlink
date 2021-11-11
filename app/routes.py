@@ -13,6 +13,7 @@ from app import app
 from app.helpers.checks import check_params
 from app.helpers.urls import add_item
 from app.helpers.urls import fetch_url
+from app.helpers.utils import get_redirect_param
 from app.models.dynamo_db import get_dynamodb_table
 
 logger = logging.getLogger(__name__)
@@ -122,7 +123,7 @@ def get_shortlink(shortlink_id):
     :return: a redirection to the full url or a json with the full url
     """
     logger.debug("Entry in shortlinks fetch at %f with url_id %s", time.time(), shortlink_id)
-    should_redirect = request.args.get('redirect', 'true')
+    should_redirect = get_redirect_param(request)
     if should_redirect not in ("true", "false"):
         logger.error("redirect parameter set to a non accepted value : %s", should_redirect)
         abort(400, "accepted values for redirect parameter are true or false.")

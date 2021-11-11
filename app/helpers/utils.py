@@ -41,3 +41,7 @@ def get_registered_method(app, endpoint):
             r.methods if r.methods else all_methods for r in app.url_map.iter_rules(endpoint)
         ])
     )
+
+
+def get_redirect_param(request):
+    return request.args.get('redirect', 'true')
