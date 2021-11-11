@@ -1,10 +1,12 @@
 import logging
+import re
 import unittest
 
 import boto3
 
 from app import app
 from app.helpers.urls import create_url
+from app.settings import ALLOWED_DOMAINS_PATTERN
 from app.settings import AWS_DEFAULT_REGION
 from app.settings import AWS_DYNAMODB_TABLE_NAME
 from app.settings import AWS_ENDPOINT_URL
@@ -95,3 +97,15 @@ class BaseShortlinkTestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.table.delete()
+
+    def assertCors(self, response, expected_allowed_methods, check_origin=True):  # pylint: disable=invalid-name
+        if check_origin:
+            self.assertIn('Access-Control-Allow-Origin', response.headers)
+            self.assertTrue(
+                re.match(ALLOWED_DOMAINS_PATTERN, response.headers['Access-Control-Allow-Origin'])
+            )
+        self.assertIn('Access-Control-Allow-Methods', response.headers)
+        self.assertListEqual(
+            sorted(expected_allowed_methods),
+            sorted(response.headers['Access-Control-Allow-Methods'].split(','))
+        )

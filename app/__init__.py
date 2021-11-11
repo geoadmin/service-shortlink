@@ -8,14 +8,11 @@ from flask import abort
 from flask import request
 from flask import url_for
 
-from app.helpers import init_logging
 from app.helpers.response_generation import make_error_msg
+from app.helpers.utils import get_registered_method
 from app.settings import ALLOWED_DOMAINS_PATTERN
 from app.settings import CACHE_CONTROL
 from app.settings import CACHE_CONTROL_4XX
-
-#initialize logging using JSON as a format.
-init_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +43,18 @@ def add_charset(response):
 
 # Add CORS Headers to all request
 @app.after_request
-def add_cors_header(response):
+def add_generic_cors_header(response):
     if (
         'Origin' in request.headers and
         re.match(ALLOWED_DOMAINS_PATTERN, request.headers['Origin'])
     ):
+        # Don't add the allow origin if the origin is not allowed, otherwise that would give
+        # a hint to the user on how to missused this service
         response.headers.set('Access-Control-Allow-Origin', request.headers['Origin'])
-        response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD')
+    # Always add the allowed methods.
+    response.headers.set(
+        'Access-Control-Allow-Methods', ','.join(get_registered_method(app, request.endpoint))
+    )
     return response
 
 
