@@ -109,3 +109,5 @@ class BaseShortlinkTestCase(unittest.TestCase):
             sorted(expected_allowed_methods),
             sorted(response.headers['Access-Control-Allow-Methods'].split(','))
         )
+        self.assertIn('Access-Control-Allow-Headers', response.headers)
+        self.assertEqual(response.headers['Access-Control-Allow-Headers'], '*')
