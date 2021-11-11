@@ -204,3 +204,5 @@ The service is configured by Environment Variable:
 | ALLOWED_DOMAINS | `.*` | A comma separated list of allowed domains names |
 | FORWARED_ALLOW_IPS | `*` | Sets the gunicorn `forwarded_allow_ips` (see https://docs.gunicorn.org/en/stable/settings.html#forwarded-allow-ips). This is required in order to `secure_scheme_headers` works. |
 | FORWARDED_PROTO_HEADER_NAME | `X-Forwarded-Proto` | Sets gunicorn `secure_scheme_headers` parameter to `{FORWARDED_PROTO_HEADER_NAME: 'https'}`, see https://docs.gunicorn.org/en/stable/settings.html#secure-scheme-headers. |
+| CACHE_CONTROL | `public, max-age=31536000` | Cache Control header value of the `GET /<shortlink>` endpoint |
+| CACHE_CONTROL_4XX | `public, max-age=3600` | Cache Control header for 4XX responses |

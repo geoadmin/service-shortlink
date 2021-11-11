@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import re
-import unittest
 
 from flask_testing import TestCase
 
@@ -18,6 +17,7 @@ class TestRoutes(BaseShortlinkTestCase):
         # checker
         response = self.app.get(url_for('checker'), headers={"Origin": "map.geo.admin.ch"})
         self.assertEqual(response.status_code, 200)
+        self.assertNotIn('Cache-Control', response.headers)
         self.assertEqual(response.content_type, "application/json; charset=utf-8")
         self.assertEqual(response.json, {'success': True, 'message': 'OK'})
 
@@ -28,6 +28,7 @@ class TestRoutes(BaseShortlinkTestCase):
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 200)
+        self.assertCors(response, ['POST', 'OPTIONS'])
         self.assertEqual(response.content_type, "application/json; charset=utf-8")
         self.assertEqual(response.json.get('success'), True)
         shorturl = response.json.get('shorturl')
@@ -40,7 +41,8 @@ class TestRoutes(BaseShortlinkTestCase):
             url_for('create_shortlink'), headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(400, response.status_code)
-        self.assertEqual("application/json", response.content_type)
+        self.assertCors(response, ['POST', 'OPTIONS'])
+        self.assertIn('application/json', response.content_type)
         self.assertEqual({
             'success': False,
             'error': {
@@ -54,7 +56,8 @@ class TestRoutes(BaseShortlinkTestCase):
             url_for('create_shortlink'), json={}, headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(400, response.status_code)
-        self.assertEqual("application/json", response.content_type)
+        self.assertCors(response, ['POST', 'OPTIONS'])
+        self.assertIn('application/json', response.content_type)
         self.assertEqual({
             'success': False,
             'error': {
@@ -71,7 +74,8 @@ class TestRoutes(BaseShortlinkTestCase):
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content_type, "application/json")
+        self.assertCors(response, ['POST', 'OPTIONS'])
+        self.assertIn('application/json', response.content_type)
         self.assertEqual(
             response.json,
             {
@@ -89,7 +93,8 @@ class TestRoutes(BaseShortlinkTestCase):
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content_type, "application/json")
+        self.assertCors(response, ['POST', 'OPTIONS'])
+        self.assertIn('application/json', response.content_type)
         self.assertEqual(
             response.json,
             {
@@ -109,7 +114,8 @@ class TestRoutes(BaseShortlinkTestCase):
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content_type, "application/json")
+        self.assertCors(response, ['POST', 'OPTIONS'])
+        self.assertIn('application/json', response.content_type)
         self.assertEqual(
             response.json,
             {
@@ -131,6 +137,9 @@ class TestRoutes(BaseShortlinkTestCase):
                 headers={"Origin": "map.geo.admin.ch"}
             )
             self.assertEqual(response.status_code, 301)
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
+            self.assertIn('Cache-Control', response.headers)
+            self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "text/html; charset=utf-8")
             TestCase().assertRedirects(response, url)
 
@@ -150,7 +159,10 @@ class TestRoutes(BaseShortlinkTestCase):
                 }
             }
             self.assertEqual(response.status_code, 400)
-            self.assertEqual(response.content_type, "application/json")
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
+            self.assertIn('Cache-Control', response.headers)
+            self.assertIn('max-age=3600', response.headers['Cache-Control'])
+            self.assertIn('application/json', response.content_type)
             self.assertEqual(response.json, expected_json)
 
     def test_redirect_shortlink_url_not_found(self):
@@ -168,7 +180,10 @@ class TestRoutes(BaseShortlinkTestCase):
             }
         }
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.content_type, "application/json")
+        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
+        self.assertIn('Cache-Control', response.headers)
+        self.assertIn('max-age=3600', response.headers['Cache-Control'])
+        self.assertIn('application/json', response.content_type)
         self.assertEqual(response.json, expected_json)
 
     def test_fetch_full_url_from_shortlink_ok(self):
@@ -178,6 +193,9 @@ class TestRoutes(BaseShortlinkTestCase):
                 headers={"Origin": "map.geo.admin.ch"}
             )
             self.assertEqual(response.status_code, 200)
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
+            self.assertIn('Cache-Control', response.headers)
+            self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "application/json; charset=utf-8")
             self.assertEqual(response.json, {'shorturl': shortid, 'full_url': url, 'success': True})
 
@@ -189,7 +207,10 @@ class TestRoutes(BaseShortlinkTestCase):
                 headers={"Origin": "map.geo.admin.ch"}
             )
             self.assertEqual(response.status_code, 200)
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
             self.assertEqual(response.content_type, "application/json; charset=utf-8")
+            self.assertIn('Cache-Control', response.headers)
+            self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.json, {'shorturl': shortid, 'full_url': url, 'success': True})
 
     def test_fetch_full_url_from_shortlink_url_not_found(self):
@@ -199,7 +220,10 @@ class TestRoutes(BaseShortlinkTestCase):
             headers={"Origin": "map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.content_type, "application/json")
+        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
+        self.assertIn('Cache-Control', response.headers)
+        self.assertIn('max-age=3600', response.headers['Cache-Control'])
+        self.assertIn('application/json', response.content_type)
         expected_json = {
             'error': {
                 'code': 404,
@@ -213,7 +237,8 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_create_shortlink_no_origin_header(self):
         response = self.app.post("/")
         self.assertEqual(403, response.status_code)
-        self.assertEqual("application/json", response.content_type)
+        self.assertCors(response, ['POST', 'OPTIONS'], check_origin=False)
+        self.assertIn('application/json', response.content_type)
         self.assertEqual({
             'success': False, 'error': {
                 'code': 403, 'message': 'Permission denied'
@@ -224,14 +249,11 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_create_shortlink_non_allowed_origin_header(self):
         response = self.app.post("/", headers={"Origin": "big-bad-wolf.com"})
         self.assertEqual(403, response.status_code)
-        self.assertEqual("application/json", response.content_type)
+        self.assertCors(response, ['POST', 'OPTIONS'], check_origin=False)
+        self.assertIn('application/json', response.content_type)
         self.assertEqual({
             'success': False, 'error': {
                 'code': 403, 'message': 'Permission denied'
             }
         },
                          response.json)
-
-
-if __name__ == '__main__':
-    unittest.main()

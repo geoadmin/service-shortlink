@@ -17,13 +17,6 @@ from app.models.dynamo_db import get_dynamodb_table
 
 logger = logging.getLogger(__name__)
 
-base_response_headers = {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTION',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-requested-with, Origin, Accept'
-}
-
 
 @app.route('/checker', methods=['GET'])
 def checker():
@@ -46,7 +39,6 @@ def checker():
     """
     logger.debug("Checker route entered at %f", time.time())
     response = make_response(jsonify({'success': True, 'message': 'OK'}), 200)
-    response.headers = base_response_headers
     return response
 
 
@@ -80,7 +72,6 @@ def create_shortlink():
     :return: a json in response which contains the url which will redirect to the initial url
     """
     logger.debug("Shortlink Creation route entered at %f", time.time())
-    response_headers = base_response_headers
     try:
         url = request.json.get('url', None)
     except AttributeError as err:
@@ -99,11 +90,6 @@ def create_shortlink():
             'success': True
         })
     )
-    response.headers = response_headers
-    response_headers['Access-Control-Allow-Origin'] = request.headers['origin']
-    response_headers['Access-Control-Allow-Methods'] = 'POST, OPTION'
-    response_headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization,' \
-                                                       ' x-requested-with, Origin, Accept'
 
     logger.info(
         "Shortlink Creation Successful.", extra={"response": json.loads(response.get_data())}
@@ -118,7 +104,7 @@ def get_shortlink(shortlink_id):
 
     This route checks the shortened url id  and redirect the user to the full url
     if the redirect parameter is set. If that's not the case,
-    it will return a json containing the informations
+    it will return a json containing the information
     about the url
 
     * Abortions originating in this function *
@@ -149,5 +135,4 @@ def get_shortlink(shortlink_id):
         return redirect(url, code=301)
     logger.info("fetched the following url : %s", url)
     response = make_response(jsonify({'shorturl': shortlink_id, 'full_url': url, 'success': True}))
-    response.headers = base_response_headers
     return response
