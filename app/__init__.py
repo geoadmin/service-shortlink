@@ -9,6 +9,7 @@ from flask import request
 from flask import url_for
 
 from app.helpers.response_generation import make_error_msg
+from app.helpers.utils import get_redirect_param
 from app.helpers.utils import get_registered_method
 from app.settings import ALLOWED_DOMAINS_PATTERN
 from app.settings import CACHE_CONTROL
@@ -25,6 +26,12 @@ app.config.from_mapping({"TRAP_HTTP_EXCEPTIONS": True})
 # Reject request from non allowed origins
 @app.before_request
 def validate_origin():
+    if request.endpoint == 'get_shortlink' and get_redirect_param(request) == 'true':
+        # Don't validate the origin for the get_shortlink endpoint with redirect.
+        # The main purpose of this endpoint is to share a link, so this link may be used by
+        # any origin (anyone)
+        return
+
     if 'Origin' not in request.headers:
         logger.error('Origin header is not set')
         abort(403, 'Permission denied')
