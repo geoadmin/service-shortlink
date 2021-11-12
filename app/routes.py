@@ -8,6 +8,7 @@ from flask import make_response
 from flask import redirect
 from flask import request
 from flask import url_for
+import requests
 
 from app import app
 from app.helpers.checks import check_params
@@ -131,8 +132,12 @@ def get_shortlink(shortlink_id):
     table = get_dynamodb_table()
     url = fetch_url(table, shortlink_id, request.base_url)
     if should_redirect == 'true':
-        logger.info("redirecting to the following url : %s", url)
-        return redirect(url, code=301)
+        response = requests.head(url)
+        if response.status_code == 200:
+            logger.info("redirecting to the following url : %s", url)
+            return redirect(url, code=301)
+        else:
+            abort(404, f"Could not redirect to the URL {url} for the shortlink id {shortlink_id}.")
     logger.info("fetched the following url : %s", url)
     response = make_response(jsonify({'shorturl': shortlink_id, 'full_url': url, 'success': True}))
     return response
