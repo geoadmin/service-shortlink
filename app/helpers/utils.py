@@ -24,7 +24,7 @@ def init_logging():
     logging.config.dictConfig(config)
 
 
-def get_registered_method(app, endpoint):
+def get_registered_method(app, url_rule):
     '''Returns the list of registered method for the given endpoint'''
 
     # The list of registered method is taken from the werkzeug.routing.Rule. A Rule object
@@ -32,12 +32,14 @@ def get_registered_method(app, endpoint):
     # missing then all methods are allowed.
     # See https://werkzeug.palletsprojects.com/en/2.0.x/routing/#werkzeug.routing.Rule
     all_methods = ['GET', 'HEAD', 'OPTIONS', 'POST', 'PUT', 'DELETE']
-    logger.debug(
-        'Url rules endpoints: %s', ','.join([r.endpoint for r in app.url_map.iter_rules()])
-    )
-    logger.debug('Request endpoint %s', endpoint)
-    return list(
+    return set(
         chain.from_iterable([
-            r.methods if r.methods else all_methods for r in app.url_map.iter_rules(endpoint)
+            r.methods if r.methods else all_methods
+            for r in app.url_map.iter_rules()
+            if r.rule == str(url_rule)
         ])
     )
+
+
+def get_redirect_param(request):
+    return request.args.get('redirect', 'true')

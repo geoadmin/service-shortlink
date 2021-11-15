@@ -131,13 +131,23 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_redirect_shortlink_ok(self):
         for shortid, url in self.uuid_to_url_dict.items():
+            response = self.app.get(url_for('get_shortlink', shortlink_id=shortid))
+            self.assertEqual(response.status_code, 301)
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], check_origin=False)
+            self.assertIn('Cache-Control', response.headers)
+            self.assertIn('max-age=', response.headers['Cache-Control'])
+            self.assertEqual(response.content_type, "text/html; charset=utf-8")
+            TestCase().assertRedirects(response, url)
+
+    def test_redirect_shortlink_ok_with_query(self):
+        for shortid, url in self.uuid_to_url_dict.items():
             response = self.app.get(
                 url_for('get_shortlink', shortlink_id=shortid),
                 query_string={'redirect': 'true'},
-                headers={"Origin": "map.geo.admin.ch"}
+                headers={"Origin": "www.example.com"}
             )
             self.assertEqual(response.status_code, 301)
-            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], check_origin=False)
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "text/html; charset=utf-8")
@@ -190,6 +200,7 @@ class TestRoutes(BaseShortlinkTestCase):
         for shortid, url in self.uuid_to_url_dict.items():
             response = self.app.get(
                 url_for('get_shortlink', shortlink_id=shortid),
+                query_string={'redirect': 'false'},
                 headers={"Origin": "map.geo.admin.ch"}
             )
             self.assertEqual(response.status_code, 200)
