@@ -32,10 +32,6 @@ def get_registered_method(app, endpoint):
     # missing then all methods are allowed.
     # See https://werkzeug.palletsprojects.com/en/2.0.x/routing/#werkzeug.routing.Rule
     all_methods = ['GET', 'HEAD', 'OPTIONS', 'POST', 'PUT', 'DELETE']
-    logger.debug(
-        'Url rules endpoints: %s', ','.join([r.endpoint for r in app.url_map.iter_rules()])
-    )
-    logger.debug('Request endpoint %s', endpoint)
     return list(
         chain.from_iterable([
             r.methods if r.methods else all_methods for r in app.url_map.iter_rules(endpoint)
