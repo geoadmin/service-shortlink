@@ -6,6 +6,7 @@ from flask_testing import TestCase
 
 from flask import url_for
 
+from app.version import APP_VERSION
 from tests.unit_tests.base import BaseShortlinkTestCase
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('Cache-Control', response.headers)
         self.assertEqual(response.content_type, "application/json; charset=utf-8")
-        self.assertEqual(response.json, {'success': True, 'message': 'OK'})
+        self.assertEqual(response.json, {'success': True, 'message': 'OK', 'version': APP_VERSION})
 
     def test_create_shortlink_ok(self):
         response = self.app.post(

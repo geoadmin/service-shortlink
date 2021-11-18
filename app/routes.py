@@ -15,6 +15,7 @@ from app.helpers.urls import add_item
 from app.helpers.urls import fetch_url
 from app.helpers.utils import get_redirect_param
 from app.models.dynamo_db import get_dynamodb_table
+from app.version import APP_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,11 @@ def checker():
     :return: a simple json saying basically 'OK'
     """
     logger.debug("Checker route entered at %f", time.time())
-    response = make_response(jsonify({'success': True, 'message': 'OK'}), 200)
+    response = make_response(
+        jsonify({
+            'success': True, 'message': 'OK', 'version': APP_VERSION
+        }), 200
+    )
     return response
 
 
