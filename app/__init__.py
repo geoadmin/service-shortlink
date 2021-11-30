@@ -1,10 +1,12 @@
 import logging
 import re
+import time
 
 from werkzeug.exceptions import HTTPException
 
 from flask import Flask
 from flask import abort
+from flask import g
 from flask import request
 from flask import url_for
 
@@ -21,6 +23,15 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_mapping({"TRAP_HTTP_EXCEPTIONS": True})
+
+
+@app.before_request
+# Add quick log of the routes used to all request.
+# Important: this should be the first before_request method, to ensure
+# a failure in another pre request method would stop logging.
+def log_route():
+    g.setdefault('request_started', time.time())
+    logger.info('%s %s', request.method, request.path)
 
 
 # Reject request from non allowed origins
@@ -78,6 +89,25 @@ def add_cache_control_header(response):
             response.headers.set('Cache-Control', CACHE_CONTROL_4XX)
         else:
             response.headers.set('Cache-Control', CACHE_CONTROL)
+    return response
+
+
+@app.after_request
+def log_response(response):
+    logger.info(
+        "%s %s - %s",
+        request.method,
+        request.path,
+        response.status,
+        extra={
+            'response': {
+                "status_code": response.status_code,
+                "headers": dict(response.headers.items()),
+                "json": response.json
+            },
+            "duration": time.time() - g.get('request_started', time.time())
+        }
+    )
     return response
 
 

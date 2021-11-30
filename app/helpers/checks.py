@@ -83,4 +83,5 @@ def check_and_get_shortlinks_id(table, url):
         return response['Items'][0]['shortlinks_id']
     except IndexError:
         logger.debug("The following url ( %s ) was not found in dynamodb", url)
+        logger.debug("Dynamodb response: %s", response)
         return None

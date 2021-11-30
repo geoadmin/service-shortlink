@@ -16,6 +16,7 @@ TEST_REPORT_FILE := nose2-junit.xml
 TIMESTAMPS = .timestamps
 REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.requirements.timestamp
 DEV_REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.dev-requirements.timestamps
+LOGS_DIR = $(PWD)/logs
 
 
 # PIPENV files
@@ -81,6 +82,7 @@ help:
 	@echo -e " \033[1mCLEANING TARGETS\033[0m "
 	@echo "- clean              Clean genereated files"
 	@echo "- clean_venv         Clean python venv"
+	@echo "- clean_logs         Clean logs"
 
 
 # Build targets. Calling setup is all that is needed for the local files to be installed as needed.
@@ -124,12 +126,12 @@ test: $(DEV_REQUIREMENTS_TIMESTAMP)
 
 # Serve targets. Using these will run the application on your local machine. You can either serve with a wsgi front (like it would be within the container), or without.
 .PHONY: serve
-serve: $(REQUIREMENTS_TIMESTAMP)
-	ENV_FILE=.env.default FLASK_APP=service_launcher FLASK_DEBUG=1 $(FLASK_CMD) run --host=0.0.0.0 --port=$(HTTP_PORT)
+serve: clean_logs $(LOGS_DIR) $(REQUIREMENTS_TIMESTAMP)
+	ENV_FILE=.env.default LOGS_DIR=$(LOGS_DIR) FLASK_APP=service_launcher FLASK_DEBUG=1 $(FLASK_CMD) run --host=0.0.0.0 --port=$(HTTP_PORT)
 
 .PHONY: gunicornserve
-gunicornserve: $(REQUIREMENTS_TIMESTAMP)
-	ENV_FILE=.env.default ${PYTHON_CMD} wsgi.py
+gunicornserve: clean_logs $(LOGS_DIR) $(REQUIREMENTS_TIMESTAMP)
+	ENV_FILE=.env.default LOGS_DIR=$(LOGS_DIR) ${PYTHON_CMD} wsgi.py
 
 # Docker related functions.
 .PHONY: dockerlogin
@@ -151,8 +153,8 @@ dockerpush: dockerbuild
 
 
 .PHONY: dockerrun
-dockerrun:
-	docker run -it -p 5000:8080 --network=host --env-file=.env.default $(DOCKER_IMG_LOCAL_TAG)
+dockerrun: clean_logs dockerbuild $(LOGS_DIR)
+	docker run -it -p 5000:8080 --network=host --env-file=.env.default $(DOCKER_IMG_LOCAL_TAG) --mount type=bind,source="${LOGS_DIR}",target=/logs
 
 
 # Cleaning functions. clean_venv will only remove the virtual environment, while clean will also remove the local python installation.
@@ -162,8 +164,13 @@ clean_venv:
 	pipenv --rm
 
 
+.PHONY: clean_logs
+clean_logs:
+	rm -rf $(LOGS_DIR)
+
+
 .PHONY: clean
-clean: clean_venv
+clean: clean_venv clean_logs
 	@# clean python cache files
 	find . -name __pycache__ -type d -print0 | xargs -I {} -0 rm -rf "{}"
 	rm -rf $(TEST_REPORT_DIR)
@@ -175,11 +182,15 @@ $(TIMESTAMPS):
 	mkdir -p $(TIMESTAMPS)
 
 
-$(REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(PIP_FILE) $(PIP_FILE_LOCK)
+$(REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(LOGS_DIR) $(PIP_FILE) $(PIP_FILE_LOCK)
 	pipenv install
 	@touch $(REQUIREMENTS_TIMESTAMP)
 
 
-$(DEV_REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(PIP_FILE) $(PIP_FILE_LOCK)
+$(DEV_REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(LOGS_DIR) $(PIP_FILE) $(PIP_FILE_LOCK)
 	pipenv install --dev
 	@touch $(DEV_REQUIREMENTS_TIMESTAMP)
+
+
+$(LOGS_DIR):
+	mkdir -p -m=777 $(LOGS_DIR)
