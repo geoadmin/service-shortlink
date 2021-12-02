@@ -10,10 +10,12 @@ logger = logging.getLogger(__name__)
 
 def get_logging_cfg():
     cfg_file = os.getenv('LOGGING_CFG', 'logging-cfg-local.yaml')
+    print(f"LOGS_DIR is {os.getenv('LOGS_DIR')}")
+    print(f"LOGGING_CFG is {cfg_file}")
 
     config = {}
     with open(cfg_file, 'rt', encoding='utf-8') as fd:
-        config = yaml.safe_load(fd.read())
+        config = yaml.safe_load(os.path.expandvars(fd.read()))
 
     logger.debug('Load logging configuration from file %s', cfg_file)
     return config

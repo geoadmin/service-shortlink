@@ -49,3 +49,6 @@ local/
 #generated files
 .timestamps/
 tests/report
+
+# files for local testing
+logs

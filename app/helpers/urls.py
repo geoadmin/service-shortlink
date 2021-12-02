@@ -94,6 +94,7 @@ def fetch_url(table, url_id, base_url):
         raise
     if url is None:
         logger.error("The Shortlink %s was not found in dynamodb.", url_id)
+        logger.error("Dynamodb query failed, response: %s .", response)
         abort(404, f'This short url doesn\'t exist: {base_url}')
     return url
 
