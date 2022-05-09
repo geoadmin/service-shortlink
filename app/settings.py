@@ -22,3 +22,5 @@ AWS_ENDPOINT_URL = os.environ.get('AWS_ENDPOINT_URL', None)
 
 CACHE_CONTROL = os.getenv('CACHE_CONTROL', 'public, max-age=31536000')
 CACHE_CONTROL_4XX = os.getenv('CACHE_CONTROL_4XX', 'public, max-age=3600')
+
+STAGING = os.environ['STAGING']

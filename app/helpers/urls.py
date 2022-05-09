@@ -8,6 +8,7 @@ from boto3.dynamodb.conditions import Key
 from flask import abort
 
 from app.helpers.checks import check_and_get_shortlinks_id
+from app.settings import STAGING
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ def create_url(table, url):
                 'shortlinks_id': shortened_url,
                 'url': url,
                 'timestamp': time.strftime('%Y-%m-%d %X', now),
-                'epoch': str(time.gmtime())
+                'staging': STAGING
             }
         )
         logger.info("Exit create_url function with shortened url --> %s", shortened_url)
