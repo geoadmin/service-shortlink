@@ -4,22 +4,21 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-boto3 = "~=1.14.51"
+boto3 = "~=1.23.0"
 logging-utilities = ">=1.2.3,~=1.2"
-Flask = "~=2.0"
-gevent = "~=20.9.0"
-gunicorn = "~=19.9.0"
+Flask = "~=2.1.0"
+gevent = "~=21.12.0"
+gunicorn = "~=20.1.0"
 PyYAML = ">=5.4"
-moto = "~=2.2.13"
-python-dotenv = "~=0.19"
-validators = "~=0.18.2"
+python-dotenv = "~=0.20.0"
+validators = "~=0.19.0"
 
 [dev-packages]
-flask-testing = "~=0.8.0"
 yapf = "~=0.30.0"
-nose2 = "~=0.9.2"
-pylint = "~=2.5.3"
-pylint-flask = "~=0.6"
+moto = "~=3.1.9"
+nose2 = "*"
+pylint = "*"
+pylint-flask = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.9"

@@ -116,3 +116,11 @@ class BaseShortlinkTestCase(unittest.TestCase):
         )
         self.assertIn('Access-Control-Allow-Headers', response.headers)
         self.assertEqual(response.headers['Access-Control-Allow-Headers'], '*')
+
+    def assertRedirects(self, response, expected_location, message=None):
+        valid_status_codes = (301, 302, 303, 305, 307)
+        valid_status_code_str = ', '.join(str(code) for code in valid_status_codes)
+        not_redirect = \
+            f"HTTP Status {valid_status_code_str} expected but got {response.status_code}"
+        self.assertTrue(response.status_code in valid_status_codes, message or not_redirect)
+        self.assertEqual(response.location, expected_location, message)
