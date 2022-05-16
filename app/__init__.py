@@ -10,9 +10,9 @@ from flask import g
 from flask import request
 from flask import url_for
 
-from app.helpers.response_generation import make_error_msg
 from app.helpers.utils import get_redirect_param
 from app.helpers.utils import get_registered_method
+from app.helpers.utils import make_error_msg
 from app.settings import ALLOWED_DOMAINS_PATTERN
 from app.settings import CACHE_CONTROL
 from app.settings import CACHE_CONTROL_4XX
@@ -31,13 +31,13 @@ app.config.from_mapping({"TRAP_HTTP_EXCEPTIONS": True})
 # a failure in another pre request method would stop logging.
 def log_route():
     g.setdefault('request_started', time.time())
-    logger.info('%s %s', request.method, request.path)
+    logger.debug('%s %s', request.method, request.path)
 
 
 # Reject request from non allowed origins
 @app.before_request
 def validate_origin():
-    if request.endpoint == 'get_shortlink' and get_redirect_param(request) == 'true':
+    if request.endpoint == 'get_shortlink' and get_redirect_param():
         # Don't validate the origin for the get_shortlink endpoint with redirect.
         # The main purpose of this endpoint is to share a link, so this link may be used by
         # any origin (anyone)

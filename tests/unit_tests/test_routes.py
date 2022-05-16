@@ -2,10 +2,9 @@ import logging
 import logging.config
 import re
 
-from flask_testing import TestCase
-
 from flask import url_for
 
+from app.settings import SHORT_ID_SIZE
 from app.version import APP_VERSION
 from tests.unit_tests.base import BaseShortlinkTestCase
 
@@ -23,31 +22,43 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertEqual(response.json, {'success': True, 'message': 'OK', 'version': APP_VERSION})
 
     def test_create_shortlink_ok(self):
+        url = "https://map.geo.admin.ch/test"
         response = self.app.post(
-            url_for('create_shortlink'),
-            json={"url": "https://map.geo.admin.ch/test"},
-            headers={"Origin": "map.geo.admin.ch"}
+            url_for('create_shortlink'), json={"url": url}, headers={"Origin": "map.geo.admin.ch"}
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         self.assertCors(response, ['POST', 'OPTIONS'])
         self.assertEqual(response.content_type, "application/json; charset=utf-8")
         self.assertEqual(response.json.get('success'), True)
         shorturl = response.json.get('shorturl')
         self.assertEqual('http://localhost/' in shorturl, True)
-        shorturl = shorturl.replace('http://localhost/', '')
-        self.assertEqual(re.search(r"^\d{12}$", shorturl) is not None, True)
+        short_id = shorturl.replace('http://localhost/', '')
+        self.assertIsNotNone(
+            re.search("^[0-9A-Za-z-_]{" + str(SHORT_ID_SIZE) + "}$", short_id),
+            msg=f'Short ID {short_id} doesn\'t match regex'
+        )
+        # Check that second call returns 200 and the same short url
+        response = self.app.post(
+            url_for('create_shortlink'), json={"url": url}, headers={"Origin": "map.geo.admin.ch"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertCors(response, ['POST', 'OPTIONS'])
+        self.assertEqual(response.content_type, "application/json; charset=utf-8")
+        self.assertEqual(response.json.get('success'), True)
+        self.assertEqual(response.json.get('shorturl'), shorturl)
 
     def test_create_shortlink_no_json(self):
         response = self.app.post(
             url_for('create_shortlink'), headers={"Origin": "map.geo.admin.ch"}
         )
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(415, response.status_code)
         self.assertCors(response, ['POST', 'OPTIONS'])
         self.assertIn('application/json', response.content_type)
         self.assertEqual({
             'success': False,
             'error': {
-                'code': 400, 'message': 'This service requires a json to be posted as a payload.'
+                'code': 415,
+                'message': 'Input data missing or from wrong type, must be application/json'
             }
         },
                          response.json)
@@ -131,19 +142,19 @@ class TestRoutes(BaseShortlinkTestCase):
         )
 
     def test_redirect_shortlink_ok(self):
-        for shortid, url in self.uuid_to_url_dict.items():
-            response = self.app.get(url_for('get_shortlink', shortlink_id=shortid))
+        for short_id, url in self.uuid_to_url_dict.items():
+            response = self.app.get(url_for('get_shortlink', shortlink_id=short_id))
             self.assertEqual(response.status_code, 301)
             self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], check_origin=False)
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "text/html; charset=utf-8")
-            TestCase().assertRedirects(response, url)
+            self.assertRedirects(response, url)
 
     def test_redirect_shortlink_ok_with_query(self):
-        for shortid, url in self.uuid_to_url_dict.items():
+        for short_id, url in self.uuid_to_url_dict.items():
             response = self.app.get(
-                url_for('get_shortlink', shortlink_id=shortid),
+                url_for('get_shortlink', shortlink_id=short_id),
                 query_string={'redirect': 'true'},
                 headers={"Origin": "www.example.com"}
             )
@@ -152,12 +163,12 @@ class TestRoutes(BaseShortlinkTestCase):
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "text/html; charset=utf-8")
-            TestCase().assertRedirects(response, url)
+            self.assertRedirects(response, url)
 
     def test_shortlink_fetch_nok_invalid_redirect_parameter(self):
-        for shortid, _ in self.uuid_to_url_dict.items():
+        for short_id, _ in self.uuid_to_url_dict.items():
             response = self.app.get(
-                url_for('get_shortlink', shortlink_id=shortid),
+                url_for('get_shortlink', shortlink_id=short_id),
                 query_string={'redirect': 'banana'},
                 content_type="text/html",
                 headers={"Origin": "map.geo.admin.ch"}
@@ -166,7 +177,7 @@ class TestRoutes(BaseShortlinkTestCase):
                 'success': False,
                 'error': {
                     'code': 400,
-                    'message': "accepted values for redirect parameter are true or false."
+                    'message': "Invalid \"redirect\" arg: invalid truth value 'banana'"
                 }
             }
             self.assertEqual(response.status_code, 400)
@@ -179,15 +190,12 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_redirect_shortlink_url_not_found(self):
         response = self.app.get(
             url_for('get_shortlink', shortlink_id='nonexistent'),
-            content_type="text/html; charset=utf-8",
             headers={"Origin": "map.geo.admin.ch"}
         )
         expected_json = {
             'success': False,
             'error': {
-                'code': 404,
-                'message': "This short url doesn't exist: "
-                           "http://localhost/nonexistent"
+                'code': 404, 'message': "No short url found for nonexistent"
             }
         }
         self.assertEqual(response.status_code, 404)
@@ -198,9 +206,9 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertEqual(response.json, expected_json)
 
     def test_fetch_full_url_from_shortlink_ok(self):
-        for shortid, url in self.uuid_to_url_dict.items():
+        for short_id, url in self.uuid_to_url_dict.items():
             response = self.app.get(
-                url_for('get_shortlink', shortlink_id=shortid),
+                url_for('get_shortlink', shortlink_id=short_id),
                 query_string={'redirect': 'false'},
                 headers={"Origin": "map.geo.admin.ch"}
             )
@@ -209,12 +217,14 @@ class TestRoutes(BaseShortlinkTestCase):
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "application/json; charset=utf-8")
-            self.assertEqual(response.json, {'shorturl': shortid, 'full_url': url, 'success': True})
+            self.assertEqual(response.json['success'], True)
+            self.assertEqual(response.json['shorturl'], short_id)
+            self.assertEqual(response.json['url'], url)
 
     def test_fetch_full_url_from_shortlink_ok_explicit_parameter(self):
-        for shortid, url in self.uuid_to_url_dict.items():
+        for short_id, url in self.uuid_to_url_dict.items():
             response = self.app.get(
-                url_for('get_shortlink', shortlink_id=shortid),
+                url_for('get_shortlink', shortlink_id=short_id),
                 query_string={'redirect': 'false'},
                 headers={"Origin": "map.geo.admin.ch"}
             )
@@ -223,7 +233,9 @@ class TestRoutes(BaseShortlinkTestCase):
             self.assertEqual(response.content_type, "application/json; charset=utf-8")
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=', response.headers['Cache-Control'])
-            self.assertEqual(response.json, {'shorturl': shortid, 'full_url': url, 'success': True})
+            self.assertEqual(response.json['success'], True)
+            self.assertEqual(response.json['shorturl'], short_id)
+            self.assertEqual(response.json['url'], url)
 
     def test_fetch_full_url_from_shortlink_url_not_found(self):
         response = self.app.get(
@@ -238,9 +250,7 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertIn('application/json', response.content_type)
         expected_json = {
             'error': {
-                'code': 404,
-                'message': "This short url doesn't exist: "
-                           "http://localhost/nonexistent"
+                'code': 404, 'message': "No short url found for nonexistent"
             },
             'success': False
         }

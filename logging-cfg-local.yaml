@@ -21,6 +21,10 @@ loggers:
     level: DEBUG
     handlers:
       - console
+  botocore:
+    level: INFO
+  boto3:
+    level: INFO
 
 filters:
   application:
@@ -63,8 +67,7 @@ formatters:
       logger: name
       module: module
       function: funcName
-      process: process
-      thread: thread
+      process_thread_id: "%(process)X-%(thread)X"
       request:
         url: flask_request_url
         method: flask_request_method
