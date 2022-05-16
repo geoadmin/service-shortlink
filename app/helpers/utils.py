@@ -91,6 +91,7 @@ def get_url():
     Abort with a 400 status code if there is no url, given to shorten
     Abort with a 400 status code if the url is over 2046 characters long (dynamodb limitation)
     Abort with a 400 status code if the hostname of the URL parameter is not allowed.
+    Abort with a 415 status code if the payload is invalid.
     """
     if not request.is_json:
         abort(415, 'Input data missing or from wrong type, must be application/json')
