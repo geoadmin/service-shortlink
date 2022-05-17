@@ -1,13 +1,13 @@
 [style]
 based_on_style=google
-# Put closing brackets on a separate line, dedent, if the bracketed
+# Put closing brackets on a separate line, dedented, if the bracketed
 # expression can't fit in a single line. Applies to all kinds of brackets,
 # including function definitions and calls. For example:
 #
 #   config = {
 #       'key1': 'value1',
 #       'key2': 'value2',
-#   }        # <--- this bracket is dedent and on a separate line
+#   }        # <--- this bracket is dedented and on a separate line
 #
 #   time_series = self.remote_client.query_entity_counters(
 #       entity='dev3246.region1',
@@ -15,7 +15,7 @@ based_on_style=google
 #       transform=Transformation.AVERAGE(window=timedelta(seconds=60)),
 #       start_ts=now()-timedelta(days=3),
 #       end_ts=now(),
-#   )        # <--- this bracket is dedent and on a separate line
+#   )        # <--- this bracket is dedented and on a separate line
 dedent_closing_brackets=True
 coalesce_brackets=True
 
