@@ -1,16 +1,32 @@
 import logging
 import logging.config
 import os
+import re
+import time
+from distutils.util import strtobool
 from itertools import chain
+from pathlib import Path
 
+import validators
 import yaml
+
+from flask import abort
+from flask import jsonify
+from flask import make_response
+from flask import request
+
+from app.settings import ALLOWED_DOMAINS_PATTERN
 
 logger = logging.getLogger(__name__)
 
 
 def get_logging_cfg():
     cfg_file = os.getenv('LOGGING_CFG', 'logging-cfg-local.yaml')
-    print(f"LOGS_DIR is {os.getenv('LOGS_DIR')}")
+    if 'LOGS_DIR' not in os.environ:
+        # Build paths inside the project like this: BASE_DIR / 'subdir'.
+        logs_dir = Path(__file__).resolve(strict=True).parent.parent.parent / 'logs'
+        os.environ['LOGS_DIR'] = str(logs_dir)
+    print(f"LOGS_DIR is {os.environ['LOGS_DIR']}")
     print(f"LOGGING_CFG is {cfg_file}")
 
     config = {}
@@ -43,5 +59,59 @@ def get_registered_method(app, url_rule):
     )
 
 
-def get_redirect_param(request):
-    return request.args.get('redirect', 'true')
+def get_redirect_param():
+    try:
+        redirect = strtobool(request.args.get('redirect', 'true'))
+    except ValueError as error:
+        abort(400, f'Invalid "redirect" arg: {error}')
+    return redirect
+
+
+def generate_short_id():
+    # datetime.datetime(2001, 9, 9, 3, 46, 40) * 1000 = 1000000000000
+    return f'{int(time.time() * 1000) - 1000000000000:x}'
+
+
+def make_error_msg(code, msg):
+    response = make_response(
+        jsonify({
+            'success': False, 'error': {
+                'code': code, 'message': msg
+            }
+        }),
+        code,
+    )
+    return response
+
+
+def get_url():
+    """
+    Get and check the url parameter
+
+    Abort with a 400 status code if there is no url, given to shorten
+    Abort with a 400 status code if the url is over 2046 characters long (dynamodb limitation)
+    Abort with a 400 status code if the hostname of the URL parameter is not allowed.
+    Abort with a 415 status code if the payload is invalid.
+    """
+    if not request.is_json:
+        abort(415, 'Input data missing or from wrong type, must be application/json')
+    url = request.get_json().get('url', None)
+    if url is None:
+        logger.error('"url" parameter missing from input json')
+        abort(400, 'Url parameter missing from request')
+    if not validators.url(url):
+        logger.error('URL %s not valid.', url)
+        abort(400, f"URL({url}) given as parameter is not valid.")
+        # urls have a maximum size of 2046 character due to a dynamodb limitation
+    if len(url) > 2046:
+        logger.error("Url(%s) given as parameter exceeds characters limit.", url)
+        abort(
+            400,
+            f"The url given as parameter was too long. (limit is 2046 "
+            f"characters, {len(url)} given)"
+        )
+    if not re.match(ALLOWED_DOMAINS_PATTERN, url):
+        logger.error('URL(%s) given as a parameter is not allowed', url)
+        abort(400, 'URL given as a parameter is not allowed.')
+
+    return url

@@ -52,3 +52,5 @@ tests/report
 
 # files for local testing
 logs
+
+.vscode

@@ -5,7 +5,7 @@ import unittest
 import boto3
 
 from app import app
-from app.helpers.urls import create_url
+from app.helpers.dynamo_db import get_db
 from app.settings import ALLOWED_DOMAINS_PATTERN
 from app.settings import AWS_DEFAULT_REGION
 from app.settings import AWS_DYNAMODB_TABLE_NAME
@@ -25,22 +25,16 @@ def create_dynamodb():
         )
         dynamodb.create_table(
             TableName=AWS_DYNAMODB_TABLE_NAME,
-            AttributeDefinitions=[
-                {
-                    'AttributeName': 'url', 'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'shortlinks_id', 'AttributeType': 'S'
-                },
-            ],
             KeySchema=[
                 {
-                    'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
-                },
-                {
-                    'AttributeName': 'url', 'KeyType': 'HASH'
+                    'AttributeName': 'shortlink_id', 'KeyType': 'HASH'
                 },
             ],
+            AttributeDefinitions=[{
+                'AttributeName': 'shortlink_id', 'AttributeType': 'S'
+            }, {
+                'AttributeName': 'url', 'AttributeType': 'S'
+            }],
             LocalSecondaryIndexes=[
                 {
                     'IndexName': 'UrlIndex',
@@ -48,21 +42,12 @@ def create_dynamodb():
                         'AttributeName': 'url', 'KeyType': 'HASH'
                     }],
                     'Projection': {
-                        'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['shortlinks_id']
-                    }
-                },
-                {
-                    'IndexName': 'ShortlinksIndex',
-                    'KeySchema': [{
-                        'AttributeName': 'shortlinks_id', 'KeyType': 'HASH'
-                    }],
-                    'Projection': {
-                        'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['url']
+                        'ProjectionType': 'INCLUDE', 'NonKeyAttributes': ['shortlink_id', 'url']
                     }
                 },
             ],
             ProvisionedThroughput={
-                'ReadCapacityUnits': 123, 'WriteCapacityUnits': 123
+                'ReadCapacityUnits': 10, 'WriteCapacityUnits': 10
             }
         )
     except dynamodb.meta.client.exceptions.ResourceInUseException as err:
@@ -73,30 +58,30 @@ def create_dynamodb():
 
 class BaseShortlinkTestCase(unittest.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
+        super().setUp()
+        self.context = app.test_request_context()
+        self.context.push()
+        self.app = app.test_client()
         # pylint: disable=line-too-long
-        cls.context = app.test_request_context()
-        cls.context.push()
-        cls.app = app.test_client()
-        cls.valid_urls_list = [
+        self.valid_urls_list = [
             "https://map.geo.admin.ch/?lang=fr&topic=ech&bgLayer=ch.swisstopo.pixelkarte-farbe&layers=ch.swisstopo.zeitreihen,ch.bfs.gebaeude_wohnungs_register,ch.bav.haltestellen-oev,ch.swisstopo.swisstlm3d-wanderwege&layers_opacity=1,1,1,0.8&layers_visibility=false,false,false,false&layers_timestamp=18641231,,,",
             "https://map.geo.admin.ch/?lang=fr&topic=ech&bgLayer=ch.swisstopo.pixelkarte-farbe&layers=ch.swisstopo.swisstlm3d-wanderwege&layers_opacity=0.8",
             "https://map.geo.admin.ch/?lang=fr&topic=ech&bgLayer=ch.swisstopo.pixelkarte-farbe&layers=ch.swisstopo.swisstlm3d-wanderwege,ch.swisstopo.vec200-landcover,ch.bfs.arealstatistik-waldmischungsgrad,ch.bafu.biogeographische_regionen,ch.bfs.arealstatistik-bodenbedeckung-1985&layers_opacity=0.8,0.75,0.75,0.75,0.75&catalogNodes=457,477"
         ]
-        cls.invalid_urls_list = [
+        self.invalid_urls_list = [
             "https://map.geo.admin.ch/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/ThisIsAVeryLongTextWhoseGoalIsToMakeSureWeGoOverThe2046CharacterLimitOfTheServiceShortlinkUrl/ThisWillNowBeCopiedMultipleTimes/"
         ]
-        cls.table = create_dynamodb()
-        cls.uuid_to_url_dict = dict()
-        for url in cls.valid_urls_list:
-            uuid = (create_url(cls.table, url))
-            cls.uuid_to_url_dict[uuid] = url
+        self.table = create_dynamodb()
+        self.db_client = get_db()
+        self.uuid_to_url_dict = {}
+        for url in self.valid_urls_list:
+            db_entry = self.db_client.add_url_to_table(url)
+            self.uuid_to_url_dict[db_entry['shortlink_id']] = url
         logger.debug("Setting up Dynamo Db tests")
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.table.delete()
+    def tearDown(self):
+        self.table.delete()
 
     def assertCors(self, response, expected_allowed_methods, check_origin=True):  # pylint: disable=invalid-name
         if check_origin:
@@ -116,3 +101,11 @@ class BaseShortlinkTestCase(unittest.TestCase):
         )
         self.assertIn('Access-Control-Allow-Headers', response.headers)
         self.assertEqual(response.headers['Access-Control-Allow-Headers'], '*')
+
+    def assertRedirects(self, response, expected_location, message=None):
+        valid_status_codes = (301,)
+        valid_status_code_str = ', '.join(str(code) for code in valid_status_codes)
+        not_redirect = \
+            f"HTTP Status {valid_status_code_str} expected but got {response.status_code}"
+        self.assertTrue(response.status_code in valid_status_codes, message or not_redirect)
+        self.assertEqual(response.location, expected_location, message)

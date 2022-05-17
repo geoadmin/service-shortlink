@@ -27,7 +27,7 @@ class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method
     def __init__(self, app, options=None):  # pylint: disable=redefined-outer-name
         self.options = options or {}
         self.application = app
-        super(StandaloneApplication, self).__init__()
+        super().__init__()
 
     def load_config(self):
         config = {
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     HTTP_PORT = str(os.environ.get('HTTP_PORT', "5000"))
     # Bind to 0.0.0.0 to let your app listen to all network interfaces.
     options = {
-        'bind': '%s:%s' % ('0.0.0.0', HTTP_PORT),
+        'bind': f'0.0.0.0:{HTTP_PORT}',
         'worker_class': 'gevent',
         'workers': 2,  # scaling horizontaly is left to Kubernetes
         'timeout': 60,

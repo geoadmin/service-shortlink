@@ -16,31 +16,18 @@ services:
       - --attribute-definitions
       - >-
         [{
+          "AttributeName": "shortlink_id",
+          "AttributeType": "S"
+        }, {
           "AttributeName": "url",
           "AttributeType": "S"
         }, {
-          "AttributeName": "shortlinks_id",
+          "AttributeName": "staging",
           "AttributeType": "S"
         }]
       - --key-schema
-      - AttributeName=url,KeyType=HASH
+      - AttributeName=shortlink_id,KeyType=HASH
       - --global-secondary-indexes
-      - >-
-       {
-          "IndexName": "ShortlinksIndex",
-          "KeySchema": [{
-            "AttributeName": "shortlinks_id",
-            "KeyType": "HASH"
-            }
-            ],
-          "Projection": {
-            "ProjectionType": "ALL"
-          },
-          "ProvisionedThroughput": {
-            "ReadCapacityUnits": 1,
-            "WriteCapacityUnits": 1
-          }
-        }
       - >-
         {
           "IndexName": "UrlIndex",
@@ -49,7 +36,25 @@ services:
             "KeyType": "HASH"
           }],
           "Projection": {
-            "ProjectionType": "ALL"
+            "ProjectionType": "INCLUDE",
+            "NonKeyAttributes": ["shortlink_id", "url", "created"]
+          },
+          "ProvisionedThroughput": {
+            "ReadCapacityUnits": 1,
+            "WriteCapacityUnits": 1
+          }
+        }
+      - >-
+        {
+          "IndexName": "StagingsIndex",
+          "KeySchema": [{
+            "AttributeName": "staging",
+            "KeyType": "HASH"
+            }
+            ],
+          "Projection": {
+            "ProjectionType": "INCLUDE",
+            "NonKeyAttributes": ["shortlink_id", "url", "created"]
           },
           "ProvisionedThroughput": {
             "ReadCapacityUnits": 1,

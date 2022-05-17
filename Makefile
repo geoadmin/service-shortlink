@@ -6,25 +6,17 @@ SERVICE_NAME := service-shortlink
 
 CURRENT_DIR := $(shell pwd)
 INSTALL_DIR := $(shell pipenv --venv)
-HTTP_PORT ?= 5000
-PYTHON_LOCAL_DIR := $(CURRENT_DIR)/build/local
 PYTHON_FILES := $(shell find ./* -type f -name "*.py" -print)
 TEST_REPORT_DIR := $(CURRENT_DIR)/tests/report
 TEST_REPORT_FILE := nose2-junit.xml
-
-# general targets timestamps
-TIMESTAMPS = .timestamps
-REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.requirements.timestamp
-DEV_REQUIREMENTS_TIMESTAMP = $(TIMESTAMPS)/.dev-requirements.timestamps
 LOGS_DIR = $(PWD)/logs
-
 
 # PIPENV files
 PIP_FILE = Pipfile
 PIP_FILE_LOCK = Pipfile.lock
 
 # default configuration
-HTTP_PORT ?= 8080
+HTTP_PORT ?= 5000
 
 # Commands
 
@@ -63,8 +55,7 @@ help:
 	@echo
 	@echo "Possible targets:"
 	@echo -e " \033[1mBUILD TARGETS\033[0m "
-	@echo "- setup              Create the python virtual environment and activate it"
-	@echo "- dev                Create the python virtual environment with developper tools and activate it"
+	@echo "- setup              Create the python virtual environment with developper tools and activate it"
 	@echo "- ci                 Create the python virtual environment and install requirements based on the Pipfile.lock"
 	@echo -e " \033[1mFORMATING, LINTING AND TESTING TOOLS TARGETS\033[0m "
 	@echo "- format             Format the python source code"
@@ -87,31 +78,27 @@ help:
 
 # Build targets. Calling setup is all that is needed for the local files to be installed as needed.
 
-.PHONY: dev
-dev: $(DEV_REQUIREMENTS_TIMESTAMP)
-	pipenv shell
-
-
 .PHONY: setup
-setup: $(REQUIREMENTS_TIMESTAMP)
+setup:
+	pipenv install --dev
 	pipenv shell
 
 .PHONY: ci
-ci: $(TIMESTAMPS) $(PIP_FILE) $(PIP_FILE_LOCK)
+ci:
 	# Create virtual env with all packages for development using the Pipfile.lock
 	pipenv sync --dev
 
 # linting target, calls upon yapf to make sure your code is easier to read and respects some conventions.
 
 .PHONY: format
-format: $(DEV_REQUIREMENTS_TIMESTAMP)
+format:
 	$(YAPF_CMD) -p -i --style .style.yapf $(PYTHON_FILES)
 	$(ISORT_CMD) $(PYTHON_FILES)
 
 
 
 .PHONY: lint
-lint: $(DEV_REQUIREMENTS_TIMESTAMP)
+lint:
 	$(PYLINT_CMD) $(PYTHON_FILES)
 
 
@@ -120,17 +107,17 @@ format-lint: format lint
 
 
 .PHONY: test
-test: $(DEV_REQUIREMENTS_TIMESTAMP)
+test:
 	mkdir -p $(TEST_REPORT_DIR)
 	ENV_FILE=.env.testing $(NOSE_CMD) -c tests/unittest.cfg -v --junit-xml-path $(TEST_REPORT_DIR)/$(TEST_REPORT_FILE) -s tests/
 
 # Serve targets. Using these will run the application on your local machine. You can either serve with a wsgi front (like it would be within the container), or without.
 .PHONY: serve
-serve: clean_logs $(LOGS_DIR) $(REQUIREMENTS_TIMESTAMP)
+serve: clean_logs $(LOGS_DIR)
 	ENV_FILE=.env.default LOGS_DIR=$(LOGS_DIR) FLASK_APP=service_launcher FLASK_DEBUG=1 $(FLASK_CMD) run --host=0.0.0.0 --port=$(HTTP_PORT)
 
 .PHONY: gunicornserve
-gunicornserve: clean_logs $(LOGS_DIR) $(REQUIREMENTS_TIMESTAMP)
+gunicornserve: clean_logs $(LOGS_DIR)
 	ENV_FILE=.env.default LOGS_DIR=$(LOGS_DIR) ${PYTHON_CMD} wsgi.py
 
 # Docker related functions.
@@ -145,7 +132,9 @@ dockerbuild:
 		--build-arg GIT_BRANCH="$(GIT_BRANCH)" \
 		--build-arg GIT_DIRTY="$(GIT_DIRTY)" \
 		--build-arg VERSION="$(GIT_TAG)" \
-		--build-arg AUTHOR="$(AUTHOR)" -t $(DOCKER_IMG_LOCAL_TAG) .
+		--build-arg HTTP_PORT="$(HTTP_PORT)" \
+		--build-arg AUTHOR="$(AUTHOR)" \
+		-t $(DOCKER_IMG_LOCAL_TAG) .
 
 .PHONY: dockerpush
 dockerpush: dockerbuild
@@ -154,7 +143,13 @@ dockerpush: dockerbuild
 
 .PHONY: dockerrun
 dockerrun: clean_logs dockerbuild $(LOGS_DIR)
-	docker run -it -p 5000:8080 --network=host --env-file=.env.default $(DOCKER_IMG_LOCAL_TAG) --mount type=bind,source="${LOGS_DIR}",target=/logs
+	docker run \
+		-it \
+		--network=host \
+		--env-file=.env.default \
+		--env LOGS_DIR=/logs \
+		--mount type=bind,source="${LOGS_DIR}",target=/logs \
+		$(DOCKER_IMG_LOCAL_TAG)
 
 
 # Cleaning functions. clean_venv will only remove the virtual environment, while clean will also remove the local python installation.
@@ -174,22 +169,8 @@ clean: clean_venv clean_logs
 	@# clean python cache files
 	find . -name __pycache__ -type d -print0 | xargs -I {} -0 rm -rf "{}"
 	rm -rf $(TEST_REPORT_DIR)
-	rm -rf $(TIMESTAMPS)
 
 # Actual builds targets with dependencies
-
-$(TIMESTAMPS):
-	mkdir -p $(TIMESTAMPS)
-
-
-$(REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(LOGS_DIR) $(PIP_FILE) $(PIP_FILE_LOCK)
-	pipenv install
-	@touch $(REQUIREMENTS_TIMESTAMP)
-
-
-$(DEV_REQUIREMENTS_TIMESTAMP): $(TIMESTAMPS) $(LOGS_DIR) $(PIP_FILE) $(PIP_FILE_LOCK)
-	pipenv install --dev
-	@touch $(DEV_REQUIREMENTS_TIMESTAMP)
 
 
 $(LOGS_DIR):
