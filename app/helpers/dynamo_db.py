@@ -88,7 +88,7 @@ class DynamoDB():
         Returns:
             Table entry
         '''
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone.utc).isoformat(timespec='milliseconds')
         collision_retry = 0
         while True:
             try:
