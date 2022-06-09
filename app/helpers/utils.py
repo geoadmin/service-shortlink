@@ -59,11 +59,13 @@ def get_registered_method(app, url_rule):
     )
 
 
-def get_redirect_param():
+def get_redirect_param(ignore_errors=False):
     try:
         redirect = strtobool(request.args.get('redirect', 'true'))
     except ValueError as error:
-        abort(400, f'Invalid "redirect" arg: {error}')
+        redirect = False
+        if not ignore_errors:
+            abort(400, f'Invalid "redirect" arg: {error}')
     return redirect
 
 

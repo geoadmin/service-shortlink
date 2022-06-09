@@ -2,6 +2,8 @@ import logging
 import logging.config
 import re
 
+from nose2.tools import params
+
 from flask import url_for
 
 from app.settings import SHORT_ID_SIZE
@@ -54,14 +56,16 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertEqual(415, response.status_code)
         self.assertCors(response, ['POST', 'OPTIONS'])
         self.assertIn('application/json', response.content_type)
-        self.assertEqual({
-            'success': False,
-            'error': {
-                'code': 415,
-                'message': 'Input data missing or from wrong type, must be application/json'
-            }
-        },
-                         response.json)
+        self.assertEqual(
+            {
+                'success': False,
+                'error': {
+                    'code': 415,
+                    'message': 'Input data missing or from wrong type, must be application/json'
+                }
+            },
+            response.json,
+        )
 
     def test_create_shortlink_no_url(self):
         response = self.app.post(
@@ -70,13 +74,15 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertEqual(400, response.status_code)
         self.assertCors(response, ['POST', 'OPTIONS'])
         self.assertIn('application/json', response.content_type)
-        self.assertEqual({
-            'success': False,
-            'error': {
-                'code': 400, 'message': 'Url parameter missing from request'
-            }
-        },
-                         response.json)
+        self.assertEqual(
+            {
+                'success': False,
+                'error': {
+                    'code': 400, 'message': 'Url parameter missing from request'
+                }
+            },
+            response.json,
+        )
 
     def test_create_shortlink_no_hostname(self):
         wrong_url = "/test"
@@ -145,7 +151,7 @@ class TestRoutes(BaseShortlinkTestCase):
         for short_id, url in self.uuid_to_url_dict.items():
             response = self.app.get(url_for('get_shortlink', shortlink_id=short_id))
             self.assertEqual(response.status_code, 301)
-            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], check_origin=False)
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "text/html; charset=utf-8")
@@ -159,7 +165,7 @@ class TestRoutes(BaseShortlinkTestCase):
                 headers={"Origin": "www.example.com"}
             )
             self.assertEqual(response.status_code, 301)
-            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], check_origin=False)
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "text/html; charset=utf-8")
@@ -181,7 +187,10 @@ class TestRoutes(BaseShortlinkTestCase):
                 }
             }
             self.assertEqual(response.status_code, 400)
-            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
+            self.assertCors(
+                response,
+                ['GET', 'HEAD', 'OPTIONS'],
+            )
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=3600', response.headers['Cache-Control'])
             self.assertIn('application/json', response.content_type)
@@ -199,7 +208,7 @@ class TestRoutes(BaseShortlinkTestCase):
             }
         }
         self.assertEqual(response.status_code, 404)
-        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
+        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
         self.assertIn('Cache-Control', response.headers)
         self.assertIn('max-age=3600', response.headers['Cache-Control'])
         self.assertIn('application/json', response.content_type)
@@ -256,26 +265,128 @@ class TestRoutes(BaseShortlinkTestCase):
         }
         self.assertEqual(response.json, expected_json)
 
-    def test_create_shortlink_no_origin_header(self):
-        response = self.app.post("/")
-        self.assertEqual(403, response.status_code)
-        self.assertCors(response, ['POST', 'OPTIONS'], check_origin=False)
-        self.assertIn('application/json', response.content_type)
-        self.assertEqual({
-            'success': False, 'error': {
-                'code': 403, 'message': 'Permission denied'
-            }
+    @params(
+        None,
+        {'Origin': 'www.example'},
+        {'Origin': ''},
+        {
+            'Origin': 'www.example', 'Sec-Fetch-Site': 'cross-site'
         },
-                         response.json)
+        {
+            'Origin': 'www.example', 'Sec-Fetch-Site': 'same-site'
+        },
+        {
+            'Origin': 'www.example', 'Sec-Fetch-Site': 'same-origin'
+        },
+        {'Referer': 'http://www.example'},
+        {'Referer': ''},
+    )
+    def test_create_shortlink_origin_not_allowed(self, headers):
+        response = self.app.post("/", headers=headers)
+        self.assertEqual(403, response.status_code)
+        self.assertCors(response, ['POST', 'OPTIONS'])
+        self.assertIn('application/json', response.content_type)
+        self.assertEqual(
+            {
+                'success': False, 'error': {
+                    'code': 403, 'message': 'Permission denied'
+                }
+            },
+            response.json,
+        )
 
-    def test_create_shortlink_non_allowed_origin_header(self):
-        response = self.app.post("/", headers={"Origin": "big-bad-wolf.com"})
-        self.assertEqual(403, response.status_code)
-        self.assertCors(response, ['POST', 'OPTIONS'], check_origin=False)
-        self.assertIn('application/json', response.content_type)
-        self.assertEqual({
-            'success': False, 'error': {
-                'code': 403, 'message': 'Permission denied'
-            }
+    @params(
+        {'Origin': 'map.geo.admin.ch'},
+        {
+            'Origin': 'map.geo.admin.ch', 'Sec-Fetch-Site': 'same-site'
         },
-                         response.json)
+        {
+            'Origin': 's.geo.admin.ch', 'Sec-Fetch-Site': 'same-origin'
+        },
+        {
+            'Origin': 'http://localhost', 'Sec-Fetch-Site': 'cross-site'
+        },
+        {'Sec-Fetch-Site': 'same-origin'},
+        {'Referer': 'https://map.geo.admin.ch'},
+    )
+    def test_create_shortlink_origin_allowed(self, headers):
+        url = "https://map.geo.admin.ch/test"
+        response = self.app.post(url_for('create_shortlink'), json={"url": url}, headers=headers)
+        self.assertEqual(response.status_code, 201)
+        self.assertCors(response, ['POST', 'OPTIONS'])
+        self.assertEqual(response.content_type, "application/json; charset=utf-8")
+        self.assertEqual(response.json.get('success'), True)
+
+    @params(
+        None,
+        {},
+        {'Origin': "www.example"},
+        {'Origin': 'map.geo.admin.ch'},
+        {'Origin': ''},
+        {
+            'Origin': 'www.example', 'Sec-Fetch-Site': 'cross-site'
+        },
+        {
+            'Origin': 'www.example', 'Sec-Fetch-Site': 'same-site'
+        },
+        {
+            'Origin': 'www.example', 'Sec-Fetch-Site': 'same-origin'
+        },
+        {
+            'Origin': 'www.example', 'Sec-Fetch-Site': 'none'
+        },
+        {
+            'Origin': 'map.geo.admin.ch', 'Sec-Fetch-Site': 'same-site'
+        },
+        {
+            'Origin': 's.geo.admin.ch', 'Sec-Fetch-Site': 'same-origin'
+        },
+        {
+            'Origin': 'http://localhost', 'Sec-Fetch-Site': 'cross-site'
+        },
+        {'Referer': 'http://www.example'},
+        {'Referer': 'https://map.geo.admin.ch'},
+        {'Referer': ''},
+        {'Sec-Fetch-Site': 'same-origin'},
+        {'Sec-Fetch-Site': 'same-site'},
+        {'Sec-Fetch-Site': 'none'},
+        {'Sec-Fetch-Site': 'cross-site'},
+    )
+    def test_get_shortlink_redirect_origin_allowed(self, headers):
+        short_id = next(iter(self.uuid_to_url_dict.keys()))
+        response = self.app.get(
+            url_for('get_shortlink', shortlink_id=short_id),
+            query_string={'redirect': 'true'},
+            headers=headers
+        )
+        self.assertEqual(response.status_code, 301)
+        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
+
+        response = self.app.get(url_for('get_shortlink', shortlink_id=short_id), headers=headers)
+        self.assertEqual(response.status_code, 301)
+        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
+
+    @params(
+        {'Origin': 'map.geo.admin.ch'},
+        {
+            'Origin': 'map.geo.admin.ch', 'Sec-Fetch-Site': 'same-site'
+        },
+        {
+            'Origin': 's.geo.admin.ch', 'Sec-Fetch-Site': 'same-origin'
+        },
+        {
+            'Origin': 'http://localhost', 'Sec-Fetch-Site': 'cross-site'
+        },
+        {'Sec-Fetch-Site': 'same-origin'},
+        {'Sec-Fetch-Site': 'same-site'},
+        {'Referer': 'https://map.geo.admin.ch'},
+    )
+    def test_get_shortlink_origin_allowed(self, headers):
+        short_id = next(iter(self.uuid_to_url_dict.keys()))
+        response = self.app.get(
+            url_for('get_shortlink', shortlink_id=short_id),
+            query_string={'redirect': 'false'},
+            headers=headers
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])

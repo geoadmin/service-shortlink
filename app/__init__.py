@@ -25,6 +25,10 @@ app = Flask(__name__)
 app.config.from_mapping({"TRAP_HTTP_EXCEPTIONS": True})
 
 
+def is_domain_allowed(domain):
+    return re.match(ALLOWED_DOMAINS_PATTERN, domain) is not None
+
+
 @app.before_request
 # Add quick log of the routes used to all request.
 # Important: this should be the first before_request method, to ensure
@@ -43,12 +47,35 @@ def validate_origin():
         # any origin (anyone)
         return
 
-    if 'Origin' not in request.headers:
-        logger.error('Origin header is not set')
+    # The Origin headers is automatically set by the browser and cannot be changed by the javascript
+    # application. Unfortunately this header is only set if the request comes from another origin.
+    # Sec-Fetch-Site header is set to `same-origin` by most of the browser except by Safari !
+    # The best protection would be to use the Sec-Fetch-Site and Origin header, however this is
+    # not supported by Safari. Therefore we added a fallback to the Referer header for Safari.
+    sec_fetch_site = request.headers.get('Sec-Fetch-Site', None)
+    origin = request.headers.get('Origin', None)
+    referrer = request.headers.get('Referer', None)
+
+    if origin is not None:
+        if is_domain_allowed(origin):
+            return
+        logger.error('Origin=%s is not allowed', origin)
         abort(403, 'Permission denied')
-    if not re.match(ALLOWED_DOMAINS_PATTERN, request.headers['Origin']):
-        logger.error('Origin %s is not allowed', request.headers['Origin'])
+
+    if sec_fetch_site is not None:
+        if sec_fetch_site in ['same-origin', 'same-site']:
+            return
+        logger.error('Sec-Fetch-Site=%s is not allowed', sec_fetch_site)
         abort(403, 'Permission denied')
+
+    if referrer is not None:
+        if is_domain_allowed(referrer):
+            return
+        logger.error('Referer=%s is not allowed', referrer)
+        abort(403, 'Permission denied')
+
+    logger.error('Referer and/or Origin and/or Sec-Fetch-Site headers not set')
+    abort(403, 'Permission denied')
 
 
 @app.after_request
@@ -66,13 +93,15 @@ def add_generic_cors_header(response):
     if request.endpoint == 'checker':
         return response
 
-    if (
-        'Origin' in request.headers and
-        re.match(ALLOWED_DOMAINS_PATTERN, request.headers['Origin'])
-    ):
-        # Don't add the allow origin if the origin is not allowed, otherwise that would give
-        # a hint to the user on how to missused this service
-        response.headers.set('Access-Control-Allow-Origin', request.headers['Origin'])
+    if request.endpoint == 'get_shortlink' and get_redirect_param(ignore_errors=True):
+        # redirect endpoint are allowed from all origins
+        response.headers['Access-Control-Allow-Origin'] = "*"
+    else:
+        response.headers['Access-Control-Allow-Origin'] = request.host_url
+        if 'Origin' in request.headers and is_domain_allowed(request.headers['Origin']):
+            response.headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+    response.headers['Vary'] = 'Origin'
+
     # Always add the allowed methods.
     response.headers.set(
         'Access-Control-Allow-Methods', ', '.join(get_registered_method(app, request.url_rule))
