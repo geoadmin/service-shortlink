@@ -27,9 +27,7 @@ loggers:
     level: INFO
 
 filters:
-  application:
-    (): logging_utilities.filters.ConstAttribute
-    application: service-shortlink
+
   isotime:
     (): logging_utilities.filters.TimeAttribute
     isotime: False
@@ -37,44 +35,78 @@ filters:
   flask:
     (): logging_utilities.filters.flask_attribute.FlaskRequestAttribute
     attributes:
-      - url
+      - path
       - method
       - headers
       - remote_addr
       - json
+      - query_string
 
 formatters:
   standard:
     format: "[%(asctime)s] %(levelname)-8s - %(name)-26s : %(message)s"
   verbose:
-    format: "[%(asctime)s] %(levelname)-8s - %(name)-26s : %(message)s : url=%(flask_request_url)s headers=%(flask_request_headers)s payload=%(flask_request_json)s"
+    format: "[%(asctime)s] %(levelname)-8s - %(name)-26s : %(message)s : path=%(flask_request_path)s headers=%(flask_request_headers)s payload=%(flask_request_json)s"
   json:
     (): logging_utilities.formatters.json_formatter.JsonFormatter
-    add_always_extra: True
+    add_always_extra: False
     filter_attributes:
-      - application
       - utc_isotime
-      - flask_request_url
+      - flask_request_path
       - flask_request_method
+      - flask_request_query_string
       - flask_request_headers
       - flask_request_json
       - flask_request_remote_addr
     remove_empty: True
+    ignore_missing: True
     fmt:
       time: utc_isotime
       level: levelname
-      app: application
       logger: name
       module: module
       function: funcName
-      process_thread_id: "%(process)X-%(thread)X"
+      pidTid: "%(process)x/%(thread)x"
+      excInfo: exc_info
       request:
-        url: flask_request_url
+        id: flask_request_headers.X-Amz-Cf-Id
+        path: flask_request_path
         method: flask_request_method
-        headers: flask_request_headers
-        data: flask_request_json
-        remote: flask_request_remote_addr
-      exc_info: exc_info
+        queryString: flask_request_query_string
+        headers:
+          Content-Type: flask_request_headers.Content-Type
+          Content-Length: flask_request_headers.Content-Length
+          Cloudfront-Forwarded-Proto: flask_request_headers.Cloudfront-Forwarded-Proto
+          Content-Encoding: flask_request_headers.Content-Encoding
+          Origin: flask_request_headers.Origin
+          Referer: flask_request_headers.Referer
+          Accept: flask_request_headers.Accept
+          Accept-Encoding: flask_request_headers.Accept-Encoding
+          Accept-Language: flask_request_headers.Accept-Language
+          User-Agent: flask_request_headers.User-Agent
+          If-None-Match: flask_request_headers.If-None-Match
+          Sec-Fetch-Mode: flask_request_headers.Sec-Fetch-Mode
+          Sec-Fetch-Site: flask_request_headers.Sec-Fetch-Site
+          Sec-CH-UA: flask_request_headers.Sec-CH-UA
+          Sec-CH-UA-Mobile: flask_request_headers.Sec-CH-UA-Mobile
+          Sec-CH-UA-Platform: flask_request_headers.Sec-CH-UA-Platform
+          Sec-CH-UA-Model: flask_request_headers.Sec-CH-UA-Model
+        remoteAddr: flask_request_remote_addr
+        payload: "%(flask_request_json).128s"
+      response:
+        statusCode: response.status_code
+        headers:
+          Cache-Control: response.headers.Cache-Control
+          Expires: response.headers.Expires
+          Content-Type: response.headers.Content-Type
+          Content-Length: response.headers.Content-Length
+          Content-Encoding: response.headers.Content-Encoding
+          Access-Control-Allow-Headers: response.headers.Access-Control-Allow-Headers
+          Access-Control-Allow-Methods: response.headers.Access-Control-Allow-Methods
+          Access-Control-Allow-Origin: response.headers.Access-Control-Allow-Origin
+          ETag: response.headers.ETag
+        duration: response.duration
+        payload: "%(response.payload).128s"
       message: message
 
 handlers:
@@ -83,7 +115,6 @@ handlers:
     formatter: standard
     stream: ext://sys.stdout
     filters:
-      - application
       - isotime
       - flask
   file-standard:
