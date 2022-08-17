@@ -51,7 +51,7 @@ class DynamoDB():
         try:
             return response['Items'][0]
         except IndexError:
-            logger.info(
+            logger.debug(
                 "The following url '%s' was not found in dynamodb",
                 url,
                 extra={"db_response": response}

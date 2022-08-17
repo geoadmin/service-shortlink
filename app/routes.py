@@ -1,5 +1,4 @@
 import logging
-import time
 
 from flask import abort
 from flask import jsonify
@@ -18,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 @app.route('/checker', methods=['GET'])
 def checker():
-    logger.debug("Checker route entered at %f", time.time())
     response = make_response(
         jsonify({
             'success': True, 'message': 'OK', 'version': APP_VERSION
@@ -47,8 +45,6 @@ def create_shortlink():
         }),
         201 if new_entry else 200
     )
-
-    logger.info("Shortlink Creation Successful.", extra={"response": {"json": response.get_json()}})
     return response
 
 
@@ -65,7 +61,7 @@ def get_shortlink(shortlink_id):
         abort(404, f'No short url found for {shortlink_id}')
 
     if should_redirect:
-        logger.info("redirecting to the following url : %s", db_entry['url'])
+        logger.debug("redirecting to the following url : %s", db_entry['url'])
         return redirect(db_entry['url'], code=301)
 
     return make_response(
