@@ -133,8 +133,8 @@ def log_response(response):
                 "status_code": response.status_code,
                 "headers": dict(response.headers.items()),
                 "json": response.json,
-                "duration": time.time() - g.get('request_started', time.time())
-            }
+            },
+            "duration": time.time() - g.get('request_started', time.time())
         }
     )
     return response
