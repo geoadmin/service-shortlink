@@ -95,7 +95,13 @@ format:
 	$(YAPF_CMD) -p -i --style .style.yapf $(PYTHON_FILES)
 	$(ISORT_CMD) $(PYTHON_FILES)
 
-
+.PHONY: ci-check-format
+ci-check-format: format
+	@if [[ -n `git status --porcelain` ]]; then \
+	 	>&2 echo "ERROR: the following files are not formatted correctly:"; \
+		>&2 git status --porcelain; \
+		exit 1; \
+	fi
 
 .PHONY: lint
 lint:
