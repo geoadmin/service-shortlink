@@ -1,9 +1,9 @@
 # service-shortlink
 
-| Branch | Status |
-|--------|-----------|
+| Branch  | Status                                                                                                                                                                                                                                                                                                                      |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | develop | ![Build Status](https://codebuild.eu-central-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiTzlSRlU5eUZIdlQzb2JDTE9FTXdkNmk0L0d5K0pWMjZLbE00NmtWTjdxS1FFdFpsbVM1QWNqRTgrOGNmNUhib0tjZXRSMUtndTE0dmZ5RDY2blB1K0tNPSIsIml2UGFyYW1ldGVyU3BlYyI6InNUUXlKaU9YUkE1Z0tQci8iLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=develop) |
-| master | ![Build Status](https://codebuild.eu-central-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiTzlSRlU5eUZIdlQzb2JDTE9FTXdkNmk0L0d5K0pWMjZLbE00NmtWTjdxS1FFdFpsbVM1QWNqRTgrOGNmNUhib0tjZXRSMUtndTE0dmZ5RDY2blB1K0tNPSIsIml2UGFyYW1ldGVyU3BlYyI6InNUUXlKaU9YUkE1Z0tQci8iLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master) |
+| master  | ![Build Status](https://codebuild.eu-central-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiTzlSRlU5eUZIdlQzb2JDTE9FTXdkNmk0L0d5K0pWMjZLbE00NmtWTjdxS1FFdFpsbVM1QWNqRTgrOGNmNUhib0tjZXRSMUtndTE0dmZ5RDY2blB1K0tNPSIsIml2UGFyYW1ldGVyU3BlYyI6InNUUXlKaU9YUkE1Z0tQci8iLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)  |
 
 ## Table of content
 
@@ -25,7 +25,7 @@ This service needs an external dynamodb database.
 
 ## Service API
 
-This service has three endpoints : 
+This service has three endpoints :
 
 - [Checker GET](#checker-get)
 - [Shortlink Creation POST](#shortlinks-creation)
@@ -35,40 +35,40 @@ You can find a more detailed description of the endpoints in the [OpenAPI Spec](
 
 ### Staging Environments
 
-|Environment | URL |
-|------------|-----|
-|DEV         |[https://sys-s.dev.bgdi.ch/](https://sys-s.dev.bgdi.ch/)|
-|INT         |[https://sys-s.int.bgdi.ch/](https://sys-s.int.bgdi.ch/)|
-|PROD        |[https://s.geo.admin.ch/](https://s.geo.admin.ch/)|
+| Environment | URL                                                      |
+| ----------- | -------------------------------------------------------- |
+| DEV         | [https://sys-s.dev.bgdi.ch/](https://sys-s.dev.bgdi.ch/) |
+| INT         | [https://sys-s.int.bgdi.ch/](https://sys-s.int.bgdi.ch/) |
+| PROD        | [https://s.geo.admin.ch/](https://s.geo.admin.ch/)       |
 
 ### Checker GET
 
 This is a simple route meant to test if the server is up.
 
-| Path | Method | Argument | Response Type |
-|------|--------|----------|---------------|
-|/checker|GET| None | application/json|
+| Path     | Method | Argument | Response Type    |
+| -------- | ------ | -------- | ---------------- |
+| /checker | GET    | None     | application/json |
 
 
 ### Shortlink Creation POST
 
-This route takes a json containing an url as a payload. It checks if the hostname and domain are part of the allowed names and domains, 
-then create a shortened url that is stored in a dynamodb database. If the given url already exists, within dynamodb, it returns 
+This route takes a json containing an url as a payload. It checks if the hostname and domain are part of the allowed names and domains,
+then create a shortened url that is stored in a dynamodb database. If the given url already exists, within dynamodb, it returns
 the already existing shortened url instead.
 
 
-| Path | Method | Argument | Content Type | Content | Response Type |
-|------|--------|----------|--------------|---------|---------------|
-|/|POST| None | application/json| `{"url": "https://map.geo.admin.ch}` | application/json |
+| Path | Method | Argument | Content Type     | Content                              | Response Type    |
+| ---- | ------ | -------- | ---------------- | ------------------------------------ | ---------------- |
+| /    | POST   | None     | application/json | `{"url": "https://map.geo.admin.ch}` | application/json |
 
 ### URL recuperation GET
 
 This routes search the database for the given ID and returns a json containing the corresponding url if found.
 The redirect parameter redirect the user to the corresponding url instead if set to true.
 
-| Path | Method | Argument | Response Type |
-|------|--------|----------|---------------|
-|/<shortlinks_id>|GET| optional : redirect ('true', 'false')| application/json or redirection |
+| Path             | Method | Argument                              | Response Type                   |
+| ---------------- | ------ | ------------------------------------- | ------------------------------- |
+| /<shortlinks_id> | GET    | optional : redirect ('true', 'false') | application/json or redirection |
 
 ## Local Development
 
@@ -140,7 +140,7 @@ Is the command you're looking for.
 From each github PR that is merged into `master` or into `develop`, one Docker image is built and pushed on AWS ECR with the following tag:
 
 - `vX.X.X` for tags on master
-- `vX.X.X-beta.X` for tags on develop 
+- `vX.X.X-beta.X` for tags on develop
 
 Each image contains the following metadata:
 
@@ -193,16 +193,17 @@ This service is to be delployed to the Kubernetes cluster once it is merged.
 
 The service is configured by Environment Variable:
 
-| Env Variable | Default               | Description                        |
-|--------------|-----------------------|------------------------------------|
-| LOGGING_CFG  | logging-cfg-local.yml | Logging configuration file to use. |
-| AWS_ACCESS_KEY_ID | None | Necessary credential to access dynamodb        |
-| AWS_SECRET_ACCESS_KEY | None | AWS_SECRET_ACCESS_KEY                      | |
-| AWS_DYNAMODB_TABLE_NAME |  | The dynamodb table name |
-| AWS_DEFAULT_REGION | eu-central-1 | The AWS region in which the table is hosted. |
-| AWS_ENDPOINT_URL |  | The AWS endpoint url to use |
-| ALLOWED_DOMAINS | `.*` | A comma separated list of allowed domains names |
-| FORWARED_ALLOW_IPS | `*` | Sets the gunicorn `forwarded_allow_ips` (see https://docs.gunicorn.org/en/stable/settings.html#forwarded-allow-ips). This is required in order to `secure_scheme_headers` works. |
-| FORWARDED_PROTO_HEADER_NAME | `X-Forwarded-Proto` | Sets gunicorn `secure_scheme_headers` parameter to `{FORWARDED_PROTO_HEADER_NAME: 'https'}`, see https://docs.gunicorn.org/en/stable/settings.html#secure-scheme-headers. |
-| CACHE_CONTROL | `public, max-age=31536000` | Cache Control header value of the `GET /<shortlink>` endpoint |
-| CACHE_CONTROL_4XX | `public, max-age=3600` | Cache Control header for 4XX responses |
+| Env Variable                | Default                    | Description                                                                                                                                                                      |
+| --------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LOGGING_CFG                 | logging-cfg-local.yml      | Logging configuration file to use.                                                                                                                                               |
+| AWS_ACCESS_KEY_ID           | None                       | Necessary credential to access dynamodb                                                                                                                                          |
+| AWS_SECRET_ACCESS_KEY       | None                       | AWS_SECRET_ACCESS_KEY                                                                                                                                                            |  |
+| AWS_DYNAMODB_TABLE_NAME     |                            | The dynamodb table name                                                                                                                                                          |
+| AWS_DEFAULT_REGION          | eu-central-1               | The AWS region in which the table is hosted.                                                                                                                                     |
+| AWS_ENDPOINT_URL            |                            | The AWS endpoint url to use                                                                                                                                                      |
+| ALLOWED_DOMAINS             | `.*`                       | A comma separated list of allowed domains names                                                                                                                                  |
+| FORWARED_ALLOW_IPS          | `*`                        | Sets the gunicorn `forwarded_allow_ips` (see https://docs.gunicorn.org/en/stable/settings.html#forwarded-allow-ips). This is required in order to `secure_scheme_headers` works. |
+| FORWARDED_PROTO_HEADER_NAME | `X-Forwarded-Proto`        | Sets gunicorn `secure_scheme_headers` parameter to `{FORWARDED_PROTO_HEADER_NAME: 'https'}`, see https://docs.gunicorn.org/en/stable/settings.html#secure-scheme-headers.        |
+| CACHE_CONTROL               | `public, max-age=31536000` | Cache Control header value of the `GET /<shortlink>` endpoint                                                                                                                    |
+| CACHE_CONTROL_4XX           | `public, max-age=3600`     | Cache Control header for 4XX responses                                                                                                                                           |
+| GUNICORN_WORKER_TMP_DIR     | `None`                     | This should be set to an tmpfs file system for better performance. See https://docs.gunicorn.org/en/stable/settings.html#worker-tmp-dir.                                         |
