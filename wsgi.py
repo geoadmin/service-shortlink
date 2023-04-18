@@ -12,6 +12,7 @@
 # pylint: disable=wrong-import-position,wrong-import-order
 
 import gevent.monkey
+
 gevent.monkey.patch_all()
 
 import os
@@ -20,6 +21,7 @@ from gunicorn.app.base import BaseApplication
 
 from app import app as application
 from app.helpers.utils import get_logging_cfg
+from app.settings import GUNICORN_WORKER_TMP_DIR
 
 
 class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method
@@ -49,6 +51,7 @@ if __name__ == '__main__':
         'bind': f'0.0.0.0:{HTTP_PORT}',
         'worker_class': 'gevent',
         'workers': 2,  # scaling horizontaly is left to Kubernetes
+        'worker_tmp_dir': GUNICORN_WORKER_TMP_DIR,
         'timeout': 60,
         'logconfig_dict': get_logging_cfg(),
         'forwarded_allow_ips': os.getenv('FORWARED_ALLOW_IPS', '*'),
