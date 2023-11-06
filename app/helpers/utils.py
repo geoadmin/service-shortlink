@@ -2,13 +2,12 @@ import logging
 import logging.config
 import os
 import re
-import time
-from distutils.util import strtobool
 from itertools import chain
 from pathlib import Path
 
 import validators
 import yaml
+from nanoid import generate
 
 from flask import abort
 from flask import jsonify
@@ -16,6 +15,8 @@ from flask import make_response
 from flask import request
 
 from app.settings import ALLOWED_DOMAINS_PATTERN
+from app.settings import SHORT_ID_ALPHABET
+from app.settings import SHORT_ID_SIZE
 
 logger = logging.getLogger(__name__)
 
@@ -70,8 +71,7 @@ def get_redirect_param(ignore_errors=False):
 
 
 def generate_short_id():
-    # datetime.datetime(2001, 9, 9, 3, 46, 40) * 1000 = 1000000000000
-    return f'{int(time.time() * 1000) - 1000000000000:x}'
+    return generate(SHORT_ID_ALPHABET, int(SHORT_ID_SIZE))
 
 
 def make_error_msg(code, msg):
@@ -117,3 +117,17 @@ def get_url():
         abort(400, 'URL given as a parameter is not allowed.')
 
     return url
+
+
+def strtobool(value) -> bool:
+    """Convert a string representation of truth to true (1) or false (0).
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+    'val' is anything else.
+    """
+    value = value.lower()
+    if value in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    if value in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    raise ValueError(f"invalid truth value \'{value}\'")
