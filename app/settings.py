@@ -27,7 +27,7 @@ STAGING = os.environ['STAGING']
 
 COLLISION_MAX_RETRY = 10
 
-SHORT_ID_SIZE = os.getenv('SHORT_ID_SIZE', '12')
+SHORT_ID_SIZE = int(os.getenv('SHORT_ID_SIZE', '12'))
 SHORT_ID_ALPHABET = os.getenv('SHORT_ID_ALPHABET', '0123456789abcdefghijklmnopqrstuvwxyz')
 
 GUNICORN_WORKER_TMP_DIR = os.getenv("GUNICORN_WORKER_TMP_DIR", None)

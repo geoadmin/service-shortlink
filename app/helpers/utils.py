@@ -71,7 +71,7 @@ def get_redirect_param(ignore_errors=False):
 
 
 def generate_short_id():
-    return generate(SHORT_ID_ALPHABET, int(SHORT_ID_SIZE))
+    return generate(SHORT_ID_ALPHABET, SHORT_ID_SIZE)
 
 
 def make_error_msg(code, msg):
