@@ -6,6 +6,7 @@ from nose2.tools import params
 
 from flask import url_for
 
+from app.settings import SHORT_ID_ALPHABET
 from app.settings import SHORT_ID_SIZE
 from app.version import APP_VERSION
 from tests.unit_tests.base import BaseShortlinkTestCase
@@ -35,9 +36,16 @@ class TestRoutes(BaseShortlinkTestCase):
         shorturl = response.json.get('shorturl')
         self.assertEqual('http://localhost/' in shorturl, True)
         short_id = shorturl.replace('http://localhost/', '')
+        self.assertEqual(
+            len(short_id),
+            SHORT_ID_SIZE,
+            msg=f"Length of short_id '{short_id}' does not match configured size of "\
+                f"{SHORT_ID_SIZE} characters"
+        )
+        # Check if all characters of short_id are allowed characters as defined in SHORT_ID_ALPHABET
         self.assertIsNotNone(
-            re.search("^[0-9A-Za-z-_]{" + str(SHORT_ID_SIZE) + "}$", short_id),
-            msg=f'Short ID {short_id} doesn\'t match regex'
+            re.fullmatch(f"[{SHORT_ID_ALPHABET}]+", short_id),
+            f"Invalid characters found in short-id '{short_id}'. Allowed '{SHORT_ID_ALPHABET}'"
         )
         # Check that second call returns 200 and the same short url
         response = self.app.post(
