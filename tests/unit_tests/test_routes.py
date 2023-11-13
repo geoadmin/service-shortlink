@@ -25,7 +25,7 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertEqual(response.json, {'success': True, 'message': 'OK', 'version': APP_VERSION})
 
     def test_create_shortlink_ok(self):
-        url = "https://map.geo.admin.ch/test"
+        url = "https://map.geo.admin.ch/#/map?lang=en&center=2647850.83,1120124.2&z=1.812&bgLayer=ch.swisstopo.pixelkarte-farbe&top"  # pylint: disable=line-too-long
         response = self.app.post(
             url_for('create_shortlink'), json={"url": url}, headers={"Origin": "map.geo.admin.ch"}
         )
