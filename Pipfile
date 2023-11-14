@@ -4,21 +4,22 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-boto3 = "~=1.23.0"
-logging-utilities = "~=3.0"
-Flask = "~=2.1.0"
-gevent = "~=21.12.0"
-gunicorn = "~=20.1.0"
-PyYAML = ">=5.4"
-python-dotenv = "~=0.20.0"
-validators = "~=0.19.0"
+boto3 = "~=1.28"
+logging-utilities = "~=4.0"
+Flask = "~=3.0.0"
+gevent = "~=23.9"
+gunicorn = "~=21.2"
+PyYAML = "~=6.0"
+python-dotenv = "~=1.0"
+validators = "==0.20" # breaking change in 0.21 and 0.22 (# in url path). To be fixed in >=0.23
+nanoid = "~=2.0"
 
 [dev-packages]
-yapf = "~=0.30.0"
-moto = "~=3.1.9"
+yapf = "~=0.40"
+moto = "~=4.2"
 nose2 = "*"
 pylint = "*"
 pylint-flask = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.11"

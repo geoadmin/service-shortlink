@@ -51,16 +51,16 @@ def create_shortlink():
 @app.route('/<shortlink_id>', methods=['GET'])
 def get_shortlink(shortlink_id):
     """
-    This route checks the shortened url id  and redirect the user to the full url.
+    This route checks the shortened url id and redirect the user to the full url.
     When the redirect query parameter is set to false, it will return a json containing
     the information about the shortlink.
     """
-    should_redirect = get_redirect_param()
+
     db_entry = get_db().get_entry_by_shortlink(shortlink_id)
     if db_entry is None:
         abort(404, f'No short url found for {shortlink_id}')
 
-    if should_redirect:
+    if get_redirect_param():
         logger.debug("redirecting to the following url : %s", db_entry['url'])
         return redirect(db_entry['url'], code=301)
 

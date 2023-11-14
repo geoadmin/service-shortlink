@@ -152,4 +152,4 @@ def handle_exception(err):
     return make_error_msg(500, "Internal server error, please consult logs")
 
 
-from app import routes  # isort:skip pylint: disable=ungrouped-imports, wrong-import-position
+from app import routes  # isort:skip pylint: disable=ungrouped-imports, wrong-import-position, cyclic-import
