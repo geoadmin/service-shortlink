@@ -130,11 +130,17 @@ This will serve the application with the Gunicorn layer in front of the applicat
     make dockerrun
 
 This will serve the application with the wsgi server, inside a container.
+
 To stop serving through containers,
 
     make shutdown
 
 Is the command you're looking for.
+
+A curl example for testing the generation of shortlinks on the local db is:
+
+    curl -X POST -H "Content-Type: application/json" -H "Origin: http://localhost:8000" -d '{"url":"http://localhost:8000"}' http://localhost:5000
+
 ### Docker helpers
 
 From each github PR that is merged into `master` or into `develop`, one Docker image is built and pushed on AWS ECR with the following tag:
