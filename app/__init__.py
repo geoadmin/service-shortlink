@@ -26,7 +26,7 @@ app.config.from_mapping({"TRAP_HTTP_EXCEPTIONS": True})
 
 
 def is_domain_allowed(domain):
-    return re.match(ALLOWED_DOMAINS_PATTERN, domain) is not None
+    return re.fullmatch(ALLOWED_DOMAINS_PATTERN, domain) is not None
 
 
 @app.before_request

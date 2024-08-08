@@ -91,7 +91,7 @@ class BaseShortlinkTestCase(unittest.TestCase):
     ):  # pylint: disable=invalid-name
         self.assertIn('Access-Control-Allow-Origin', response.headers)
         self.assertIsNotNone(
-            re.match(origin_pattern, response.headers['Access-Control-Allow-Origin']),
+            re.fullmatch(origin_pattern, response.headers['Access-Control-Allow-Origin']),
             msg=f"Access-Control-Allow-Origin={response.headers['Access-Control-Allow-Origin']}"
             f" doesn't match {origin_pattern}"
         )

@@ -68,6 +68,6 @@ services:
     links:
       - dynamodb-local
     environment:
-      - AWS_ACCESS_KEY_ID=dummy-123
-      - AWS_SECRET_ACCESS_KEY=dummy-123
+      - AWS_ACCESS_KEY_ID=dummy123
+      - AWS_SECRET_ACCESS_KEY=dummy123
       - AWS_DEFAULT_REGION=wonderland
