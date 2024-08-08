@@ -113,7 +113,7 @@ def get_url():
             f"The url given as parameter was too long. (limit is 2046 "
             f"characters, {len(url)} given)"
         )
-    if not re.match(ALLOWED_DOMAINS_PATTERN, urlparse(url).netloc):
+    if not re.fullmatch(ALLOWED_DOMAINS_PATTERN, urlparse(url).netloc):
         logger.error('URL(%s) given as a parameter is not allowed', url)
         abort(400, 'URL given as a parameter is not allowed.')
 
