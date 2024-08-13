@@ -74,7 +74,7 @@ The redirect parameter redirect the user to the corresponding url instead if set
 
 ### Dependencies
 
-The **Make** targets assume you have **bash**, **curl**, **tar**, **docker** and **docker-compose** installed.
+The **Make** targets assume you have **bash**, **curl**, **tar**, **docker** and **docker-compose-plugin** installed.
 
 ### Setting up to work
 
@@ -88,7 +88,7 @@ Then, you can run the setup target to ensure you have everything needed to devel
 
 The other service that is used (DynamoDB local) is wrapped in a docker compose. Starting DynamoDB local is done with a simple
 
-    docker-compose up
+    docker compose up
 
 That's it, you're ready to work.
 
@@ -114,7 +114,7 @@ This command run the integration and unit tests.
 For testing the locally served application with the commands below, be sure to set
 ENV_FILE to .env.default and start a local DynamoDB image beforehand with:
 
-    docker-compose up &
+    docker compose up &
     export ENV_FILE=.env.default
 
 The following three make targets will serve the application locally:
