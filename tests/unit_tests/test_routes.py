@@ -131,6 +131,25 @@ class TestRoutes(BaseShortlinkTestCase):
             }
         )
 
+    def test_create_shortlink_non_allowed_hostname_containing_admin_address(self):
+        response = self.app.post(
+            url_for('create_shortlink'),
+            json={"url": "https://map.geo.admin.ch.non-allowed.hostname.ch/test"},
+            headers={"Origin": "map.geo.admin.ch"}
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertCors(response, ['POST', 'OPTIONS'])
+        self.assertIn('application/json', response.content_type)
+        self.assertEqual(
+            response.json,
+            {
+                'success': False,
+                'error': {
+                    'code': 400, 'message': 'URL given as a parameter is not allowed.'
+                }
+            }
+        )
+
     def test_create_shortlink_url_too_long(self):
         url = self.invalid_urls_list[0]
         response = self.app.post(
@@ -276,6 +295,7 @@ class TestRoutes(BaseShortlinkTestCase):
     @params(
         None,
         {'Origin': 'www.example'},
+        {'Origin': 'map.geo.admin.ch.non-allowed.hostname.ch'},
         {'Origin': ''},
         {
             'Origin': 'www.example', 'Sec-Fetch-Site': 'cross-site'
@@ -286,6 +306,7 @@ class TestRoutes(BaseShortlinkTestCase):
         {
             'Origin': 'www.example', 'Sec-Fetch-Site': 'same-origin'
         },
+        {'Referer': 'map.geo.admin.ch.non-allowed.hostname.ch'},
         {'Referer': 'http://www.example'},
         {'Referer': ''},
     )

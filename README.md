@@ -74,7 +74,7 @@ The redirect parameter redirect the user to the corresponding url instead if set
 
 ### Dependencies
 
-The **Make** targets assume you have **bash**, **curl**, **tar**, **docker** and **docker-compose** installed.
+The **Make** targets assume you have **bash**, **curl**, **tar**, **docker** and **docker-compose-plugin** installed.
 
 ### Setting up to work
 
@@ -88,7 +88,7 @@ Then, you can run the setup target to ensure you have everything needed to devel
 
 The other service that is used (DynamoDB local) is wrapped in a docker compose. Starting DynamoDB local is done with a simple
 
-    docker-compose up
+    docker compose up
 
 That's it, you're ready to work.
 
@@ -114,7 +114,7 @@ This command run the integration and unit tests.
 For testing the locally served application with the commands below, be sure to set
 ENV_FILE to .env.default and start a local DynamoDB image beforehand with:
 
-    docker-compose up &
+    docker compose up &
     export ENV_FILE=.env.default
 
 The following three make targets will serve the application locally:
@@ -130,11 +130,17 @@ This will serve the application with the Gunicorn layer in front of the applicat
     make dockerrun
 
 This will serve the application with the wsgi server, inside a container.
+
 To stop serving through containers,
 
     make shutdown
 
 Is the command you're looking for.
+
+A curl example for testing the generation of shortlinks on the local db is:
+
+    curl -X POST -H "Content-Type: application/json" -H "Origin: http://localhost:8000" -d '{"url":"http://localhost:8000"}' http://localhost:5000
+
 ### Docker helpers
 
 From each github PR that is merged into `master` or into `develop`, one Docker image is built and pushed on AWS ECR with the following tag:
