@@ -4,6 +4,7 @@ import os
 import re
 from itertools import chain
 from pathlib import Path
+from urllib.parse import urlparse
 
 import validators
 import yaml
@@ -140,4 +141,7 @@ def strtobool(value) -> bool:
 def is_domain_allowed(url):
     """Check if the url contain a domain that is allowed
     """
-    return re.fullmatch(ALLOWED_DOMAINS_PATTERN, url) is not None
+    domain = urlparse(url).hostname
+    if domain:
+        return re.fullmatch(ALLOWED_DOMAINS_PATTERN, domain) is not None
+    return False

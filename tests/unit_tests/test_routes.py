@@ -182,7 +182,7 @@ class TestRoutes(BaseShortlinkTestCase):
         for short_id, url in self.uuid_to_url_dict.items():
             response = self.app.get(url_for('get_shortlink', shortlink_id=short_id))
             self.assertEqual(response.status_code, 301)
-            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], all_origin=True)
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "text/html; charset=utf-8")
@@ -196,7 +196,7 @@ class TestRoutes(BaseShortlinkTestCase):
                 headers={"Origin": "www.example.com"}
             )
             self.assertEqual(response.status_code, 301)
-            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
+            self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], all_origin=True)
             self.assertIn('Cache-Control', response.headers)
             self.assertIn('max-age=', response.headers['Cache-Control'])
             self.assertEqual(response.content_type, "text/html; charset=utf-8")
@@ -239,7 +239,7 @@ class TestRoutes(BaseShortlinkTestCase):
             }
         }
         self.assertEqual(response.status_code, 404)
-        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
+        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], all_origin=True)
         self.assertIn('Cache-Control', response.headers)
         self.assertIn('max-age=3600', response.headers['Cache-Control'])
         self.assertIn('application/json', response.content_type)
@@ -393,11 +393,11 @@ class TestRoutes(BaseShortlinkTestCase):
             headers=headers
         )
         self.assertEqual(response.status_code, 301)
-        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
+        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], all_origin=True)
 
         response = self.app.get(url_for('get_shortlink', shortlink_id=short_id), headers=headers)
         self.assertEqual(response.status_code, 301)
-        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
+        self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], all_origin=True)
 
     @params(
         {'Origin': 'https://map.geo.admin.ch'},
