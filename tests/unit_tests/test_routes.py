@@ -18,7 +18,7 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_checker_ok(self):
         # checker
-        response = self.app.get(url_for('checker'), headers={"Origin": "map.geo.admin.ch"})
+        response = self.app.get(url_for('checker'), headers={"Origin": "https://map.geo.admin.ch"})
         self.assertEqual(response.status_code, 200)
         self.assertNotIn('Cache-Control', response.headers)
         self.assertEqual(response.content_type, "application/json; charset=utf-8")
@@ -27,7 +27,9 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_create_shortlink_ok(self):
         url = "https://map.geo.admin.ch/#/map?lang=en&center=2647850.83,1120124.2&z=1.812&bgLayer=ch.swisstopo.pixelkarte-farbe&top"  # pylint: disable=line-too-long
         response = self.app.post(
-            url_for('create_shortlink'), json={"url": url}, headers={"Origin": "map.geo.admin.ch"}
+            url_for('create_shortlink'),
+            json={"url": url},
+            headers={"Origin": "https://map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 201)
         self.assertCors(response, ['POST', 'OPTIONS'])
@@ -49,7 +51,9 @@ class TestRoutes(BaseShortlinkTestCase):
         )
         # Check that second call returns 200 and the same short url
         response = self.app.post(
-            url_for('create_shortlink'), json={"url": url}, headers={"Origin": "map.geo.admin.ch"}
+            url_for('create_shortlink'),
+            json={"url": url},
+            headers={"Origin": "https://map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 200)
         self.assertCors(response, ['POST', 'OPTIONS'])
@@ -59,7 +63,7 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_create_shortlink_no_json(self):
         response = self.app.post(
-            url_for('create_shortlink'), headers={"Origin": "map.geo.admin.ch"}
+            url_for('create_shortlink'), headers={"Origin": "https://map.geo.admin.ch"}
         )
         self.assertEqual(415, response.status_code)
         self.assertCors(response, ['POST', 'OPTIONS'])
@@ -77,7 +81,7 @@ class TestRoutes(BaseShortlinkTestCase):
 
     def test_create_shortlink_no_url(self):
         response = self.app.post(
-            url_for('create_shortlink'), json={}, headers={"Origin": "map.geo.admin.ch"}
+            url_for('create_shortlink'), json={}, headers={"Origin": "https://map.geo.admin.ch"}
         )
         self.assertEqual(400, response.status_code)
         self.assertCors(response, ['POST', 'OPTIONS'])
@@ -97,7 +101,7 @@ class TestRoutes(BaseShortlinkTestCase):
         response = self.app.post(
             url_for('create_shortlink'),
             json={"url": f"{wrong_url}"},
-            headers={"Origin": "map.geo.admin.ch"}
+            headers={"Origin": "https://map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 400)
         self.assertCors(response, ['POST', 'OPTIONS'])
@@ -116,7 +120,7 @@ class TestRoutes(BaseShortlinkTestCase):
         response = self.app.post(
             url_for('create_shortlink'),
             json={"url": "https://non-allowed.hostname.ch/test"},
-            headers={"Origin": "map.geo.admin.ch"}
+            headers={"Origin": "https://map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 400)
         self.assertCors(response, ['POST', 'OPTIONS'])
@@ -135,7 +139,7 @@ class TestRoutes(BaseShortlinkTestCase):
         response = self.app.post(
             url_for('create_shortlink'),
             json={"url": "https://map.geo.admin.ch.non-allowed.hostname.ch/test"},
-            headers={"Origin": "map.geo.admin.ch"}
+            headers={"Origin": "https://map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 400)
         self.assertCors(response, ['POST', 'OPTIONS'])
@@ -156,7 +160,7 @@ class TestRoutes(BaseShortlinkTestCase):
             url_for('create_shortlink'),
             json={"url": url},
             content_type="application/json",
-            headers={"Origin": "map.geo.admin.ch"}
+            headers={"Origin": "https://map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 400)
         self.assertCors(response, ['POST', 'OPTIONS'])
@@ -204,7 +208,7 @@ class TestRoutes(BaseShortlinkTestCase):
                 url_for('get_shortlink', shortlink_id=short_id),
                 query_string={'redirect': 'banana'},
                 content_type="text/html",
-                headers={"Origin": "map.geo.admin.ch"}
+                headers={"Origin": "https://map.geo.admin.ch"}
             )
             expected_json = {
                 'success': False,
@@ -226,7 +230,7 @@ class TestRoutes(BaseShortlinkTestCase):
     def test_redirect_shortlink_url_not_found(self):
         response = self.app.get(
             url_for('get_shortlink', shortlink_id='nonexistent'),
-            headers={"Origin": "map.geo.admin.ch"}
+            headers={"Origin": "https://map.geo.admin.ch"}
         )
         expected_json = {
             'success': False,
@@ -246,7 +250,7 @@ class TestRoutes(BaseShortlinkTestCase):
             response = self.app.get(
                 url_for('get_shortlink', shortlink_id=short_id),
                 query_string={'redirect': 'false'},
-                headers={"Origin": "map.geo.admin.ch"}
+                headers={"Origin": "https://map.geo.admin.ch"}
             )
             self.assertEqual(response.status_code, 200)
             self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
@@ -262,7 +266,7 @@ class TestRoutes(BaseShortlinkTestCase):
             response = self.app.get(
                 url_for('get_shortlink', shortlink_id=short_id),
                 query_string={'redirect': 'false'},
-                headers={"Origin": "map.geo.admin.ch"}
+                headers={"Origin": "https://map.geo.admin.ch"}
             )
             self.assertEqual(response.status_code, 200)
             self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
@@ -277,7 +281,7 @@ class TestRoutes(BaseShortlinkTestCase):
         response = self.app.get(
             url_for('get_shortlink', shortlink_id='nonexistent'),
             query_string={'redirect': 'false'},
-            headers={"Origin": "map.geo.admin.ch"}
+            headers={"Origin": "https://map.geo.admin.ch"}
         )
         self.assertEqual(response.status_code, 404)
         self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'])
@@ -325,12 +329,12 @@ class TestRoutes(BaseShortlinkTestCase):
         )
 
     @params(
-        {'Origin': 'map.geo.admin.ch'},
+        {'Origin': 'https://map.geo.admin.ch'},
         {
-            'Origin': 'map.geo.admin.ch', 'Sec-Fetch-Site': 'same-site'
+            'Origin': 'https://map.geo.admin.ch', 'Sec-Fetch-Site': 'same-site'
         },
         {
-            'Origin': 's.geo.admin.ch', 'Sec-Fetch-Site': 'same-origin'
+            'Origin': 'https://s.geo.admin.ch', 'Sec-Fetch-Site': 'same-origin'
         },
         {
             'Origin': 'http://localhost', 'Sec-Fetch-Site': 'cross-site'
@@ -396,12 +400,12 @@ class TestRoutes(BaseShortlinkTestCase):
         self.assertCors(response, ['GET', 'HEAD', 'OPTIONS'], origin_pattern=r"^\*$")
 
     @params(
-        {'Origin': 'map.geo.admin.ch'},
+        {'Origin': 'https://map.geo.admin.ch'},
         {
-            'Origin': 'map.geo.admin.ch', 'Sec-Fetch-Site': 'same-site'
+            'Origin': 'https://map.geo.admin.ch', 'Sec-Fetch-Site': 'same-site'
         },
         {
-            'Origin': 's.geo.admin.ch', 'Sec-Fetch-Site': 'same-origin'
+            'Origin': 'https://s.geo.admin.ch', 'Sec-Fetch-Site': 'same-origin'
         },
         {
             'Origin': 'http://localhost', 'Sec-Fetch-Site': 'cross-site'

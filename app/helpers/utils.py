@@ -4,7 +4,6 @@ import os
 import re
 from itertools import chain
 from pathlib import Path
-from urllib.parse import urlparse
 
 import validators
 import yaml
@@ -113,8 +112,12 @@ def get_url():
             f"The url given as parameter was too long. (limit is 2046 "
             f"characters, {len(url)} given)"
         )
-    if not re.fullmatch(ALLOWED_DOMAINS_PATTERN, urlparse(url).netloc):
-        logger.error('URL(%s) given as a parameter is not allowed', url)
+    if not is_domain_allowed(url):
+        logger.error(
+            'URL(%s) given as a parameter is not allowed, test pattern %s',
+            url,
+            ALLOWED_DOMAINS_PATTERN
+        )
         abort(400, 'URL given as a parameter is not allowed.')
 
     return url
@@ -132,3 +135,9 @@ def strtobool(value) -> bool:
     if value in ('n', 'no', 'f', 'false', 'off', '0'):
         return False
     raise ValueError(f"invalid truth value \'{value}\'")
+
+
+def is_domain_allowed(url):
+    """Check if the url contain a domain that is allowed
+    """
+    return re.fullmatch(ALLOWED_DOMAINS_PATTERN, url) is not None
