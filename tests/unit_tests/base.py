@@ -1,6 +1,7 @@
 import logging
 import re
 import unittest
+from urllib.parse import urlparse
 
 import boto3
 
@@ -83,18 +84,19 @@ class BaseShortlinkTestCase(unittest.TestCase):
     def tearDown(self):
         self.table.delete()
 
-    def assertCors(
-        self,
-        response,
-        expected_allowed_methods,
-        origin_pattern=ALLOWED_DOMAINS_PATTERN
-    ):  # pylint: disable=invalid-name
+    def assertCors(self, response, expected_allowed_methods, all_origin=False):  # pylint: disable=invalid-name
         self.assertIn('Access-Control-Allow-Origin', response.headers)
-        self.assertIsNotNone(
-            re.fullmatch(origin_pattern, response.headers['Access-Control-Allow-Origin']),
-            msg=f"Access-Control-Allow-Origin={response.headers['Access-Control-Allow-Origin']}"
-            f" doesn't match {origin_pattern}"
-        )
+        if all_origin:
+            self.assertEqual(response.headers['Access-Control-Allow-Origin'], '*')
+        else:
+            allow_origin_domain = urlparse(response.headers['Access-Control-Allow-Origin']).hostname
+            self.assertIsNotNone(
+                re.fullmatch(
+                    ALLOWED_DOMAINS_PATTERN, allow_origin_domain if allow_origin_domain else ''
+                ),
+                msg=f"Access-Control-Allow-Origin={response.headers['Access-Control-Allow-Origin']}"
+                f" doesn't match {ALLOWED_DOMAINS_PATTERN}"
+            )
         self.assertIn('Access-Control-Allow-Methods', response.headers)
         self.assertListEqual(
             sorted(expected_allowed_methods),

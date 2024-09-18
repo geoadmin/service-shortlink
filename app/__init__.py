@@ -12,8 +12,8 @@ from flask import url_for
 
 from app.helpers.utils import get_redirect_param
 from app.helpers.utils import get_registered_method
+from app.helpers.utils import is_domain_allowed
 from app.helpers.utils import make_error_msg
-from app.settings import ALLOWED_DOMAINS_PATTERN
 from app.settings import CACHE_CONTROL
 from app.settings import CACHE_CONTROL_4XX
 
@@ -23,10 +23,6 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_mapping({"TRAP_HTTP_EXCEPTIONS": True})
-
-
-def is_domain_allowed(domain):
-    return re.fullmatch(ALLOWED_DOMAINS_PATTERN, domain) is not None
 
 
 @app.before_request
