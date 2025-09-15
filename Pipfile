@@ -4,22 +4,22 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-boto3 = "~=1.28"
-logging-utilities = "~=4.0"
-Flask = "~=3.0.0"
-gevent = "~=23.9"
-gunicorn = "~=21.2"
+boto3 = "~=1.40"
+logging-utilities = "~=5.1"
+Flask = "~=3.1"
+gevent = "~=25.8"
+gunicorn = "~=23.0"
 PyYAML = "~=6.0"
-python-dotenv = "~=1.0"
-validators = "==0.20" # breaking change in 0.21 and 0.22 (# in url path). To be fixed in >=0.23
+python-dotenv = "~=1.1"
+validators = "==0.35" # breaking change in 0.21 and 0.22 (# in url path). To be fixed in >=0.23
 nanoid = "~=2.0"
 
 [dev-packages]
-yapf = "~=0.40"
-moto = "~=4.2"
+yapf = "~=0.43"
+moto = "~=5.1"
 nose2 = "*"
 pylint = "*"
 pylint-flask = "*"
 
 [requires]
-python_version = "3.11"
+python_version = "3.13"
