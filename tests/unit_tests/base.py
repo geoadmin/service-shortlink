@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 import boto3
 
-from app import app
+from app.app import app
 from app.helpers.dynamo_db import get_db
 from app.settings import ALLOWED_DOMAINS_PATTERN
 from app.settings import AWS_DEFAULT_REGION

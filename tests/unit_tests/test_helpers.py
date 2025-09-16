@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 from werkzeug.exceptions import HTTPException
 
-from app import app
+from app.app import app
 from app.helpers.dynamo_db import get_db
 from app.helpers.utils import get_url
 from tests.unit_tests.base import BaseShortlinkTestCase
