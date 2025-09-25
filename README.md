@@ -214,3 +214,24 @@ The service is configured by Environment Variable:
 | GUNICORN_WORKER_TMP_DIR       |                                           | This should be set to an tmpfs file system for better performance. See https://docs.gunicorn.org/en/stable/settings.html#worker-tmp-dir.                                         |
 | SHORT_ID_SIZE                 | `12`                                      | The size (number of characters) of the shortloink id's 
 | SHORT_ID_ALPHABET             | `0123456789abcdefghijklmnopqrstuvwxyz`    | The alphabet (characters) used by the shortlink. Allowed chars `[0-9][A-Z][a-z]-_`
+
+## OTEL
+
+This service uses [OTEL manual instrumentation](https://github.com/aws-observability/aws-otel-community/blob/master/sample-apps/python-manual-instrumentation-sample-app/app.py)
+
+Compared to auto-instrumentation, which aims to provide some out-of-the-box basic instrumentation due to monkey patching (which in case of this service caused weird exceptions),
+manual instrumentation provides full control and customization of OTEL capabilities.
+
+For simplicity reasons the basic otel instrumentation is done in the `otel.py` file. The setup functions are invoked in `wsgi.py`.
+
+This is the first implementation of OTEL with the goal to enable basic tracing. It may change in the future when we have more knowledge how to deal with instrumentation.
+
+The following env variables can be used to configure OTEL
+
+| Env Variable                  | Default                    | Description
+| OTEL_RESOURCE_ATTRIBUTES      |                            | A comma separated list of custom OTEL resource attributes, e.g. `foo=bar`. Should normally not be needed.
+| OTEL_EXPORTER_OTLP_ENDPOINT   | http://localhost:4317      | The OTEL Exporter endpoint, e.g. `opentelemetry-kube-stack-gateway-collector.opentelemetry-operator-system:4317`
+| OTEL_EXPORTER_OTLP_INSECURE   | false                      | If exporter ssl certificates should be checked or not.
+| K8S_POD_IP                    |                            | Required by OTEL collector k8sattributes processor to extract more k8s fieles from cluster metadata.
+| K8S_CONTAINER_NAME            |                            | Required since not retreavable by the OEL collector k8sattributes processor. 
+| SERVICE_NAME                  |                            | Required by OTEL collector k8sattributes processor to extract more k8s fieles from cluster metadata.

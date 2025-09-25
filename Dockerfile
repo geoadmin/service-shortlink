@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm
+FROM python:3.13-slim-bookworm
 RUN groupadd -r geoadmin && useradd -r -s /bin/false -g geoadmin geoadmin
 
 
