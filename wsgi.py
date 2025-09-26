@@ -20,6 +20,7 @@ import os
 from gunicorn.app.base import BaseApplication
 
 from app.app import app as application
+from app import otel
 from app.helpers.utils import get_logging_cfg
 from app.settings import GUNICORN_WORKER_TMP_DIR
 
@@ -46,6 +47,10 @@ class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method
 
 # We use the port 5000 as default, otherwise we set the HTTP_PORT env variable within the container.
 if __name__ == '__main__':
+    # OTEL
+    otel.setup_instrumentation()
+    otel.setup_opentelemetry()
+
     HTTP_PORT = str(os.environ.get('HTTP_PORT', "5000"))
     # Bind to 0.0.0.0 to let your app listen to all network interfaces.
     options = {
