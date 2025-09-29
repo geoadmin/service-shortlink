@@ -15,6 +15,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from app.app import app
+from app.helpers import utils
 
 
 def read_file(path, default="unknown"):
@@ -68,11 +69,14 @@ def setup_opentelemetry():
 
     otel_exporter_otlp_headers = os.getenv('OTEL_EXPORTER_OTLP_HEADERS')
     otel_exporter_otlp_endpoint = os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT', "http://localhost:4317")
+    otel_exporter_otlp_insecure = os.getenv('OTEL_EXPORTER_OTLP_INSECURE', "false")
     # fail if server url not set
     if otel_exporter_otlp_endpoint is None:
         raise ValueError('OTEL_EXPORTER_OTLP_ENDPOINT environment variable not set')
     span_exporter = OTLPSpanExporter(
-        endpoint=otel_exporter_otlp_endpoint, headers=otel_exporter_otlp_headers
+        endpoint=otel_exporter_otlp_endpoint,
+        headers=otel_exporter_otlp_headers,
+        insecure=utils.strtobool(otel_exporter_otlp_insecure)
     )
 
     resource = Resource.create(get_resource_attributes())
