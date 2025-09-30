@@ -231,7 +231,11 @@ The following env variables can be used to configure OTEL
 | Env Variable                  | Default                    | Description
 | OTEL_RESOURCE_ATTRIBUTES      |                            | A comma separated list of custom OTEL resource attributes, e.g. `foo=bar`. Should normally not be needed.
 | OTEL_EXPORTER_OTLP_ENDPOINT   | http://localhost:4317      | The OTEL Exporter endpoint, e.g. `opentelemetry-kube-stack-gateway-collector.opentelemetry-operator-system:4317`
+| OTEL_PYTHON_FLASK_EXCLUDED_URLS |                          | A comma separated list of url's to exclude, e.g. `checker` 
 | OTEL_EXPORTER_OTLP_INSECURE   | false                      | If exporter ssl certificates should be checked or not.
+| OTEL_EXPORTER_OTLP_HEADERS    |                            | A comma separated list of headers added in outgoing data (logs, metrics, traces)
+| OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST   | | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers
+| OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE  | | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers
 | K8S_POD_IP                    |                            | Required by OTEL collector k8sattributes processor to extract more k8s fieles from cluster metadata.
 | K8S_CONTAINER_NAME            |                            | Required since not retreavable by the OEL collector k8sattributes processor. 
 | SERVICE_NAME                  |                            | Required by OTEL collector k8sattributes processor to extract more k8s fieles from cluster metadata.
