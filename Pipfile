@@ -13,11 +13,6 @@ PyYAML = "~=6.0"
 python-dotenv = "~=1.1"
 validators = "==0.35"
 nanoid = "~=2.0"
-opentelemetry-sdk = "*"
-opentelemetry-exporter-otlp = "*"
-opentelemetry-instrumentation-botocore = "*"
-opentelemetry-instrumentation-flask = "*"
-opentelemetry-instrumentation-requests = "*"
 
 [dev-packages]
 yapf = "~=0.43"

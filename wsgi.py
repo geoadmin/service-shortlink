@@ -1,35 +1,33 @@
-"""
-    The gevent monkey import and patch suppress a warning, and a potential problem.
-    Gunicorn would call it anyway, but if it tries to call it after the ssl module
-    has been initialized in another module (like, in our code, by the botocore library),
-    then it could lead to inconsistencies in how the ssl module is used. Thus we patch
-    the ssl module through gevent.monkey.patch_all before any other import, especially
-    the app import, which would cause the boto module to be loaded, which would in turn
-    load the ssl module.
+# """
+#     The gevent monkey import and patch suppress a warning, and a potential problem.
+#     Gunicorn would call it anyway, but if it tries to call it after the ssl module
+#     has been initialized in another module (like, in our code, by the botocore library),
+#     then it could lead to inconsistencies in how the ssl module is used. Thus we patch
+#     the ssl module through gevent.monkey.patch_all before any other import, especially
+#     the app import, which would cause the boto module to be loaded, which would in turn
+#     load the ssl module.
 
-    isort:skip_file
-"""
+#     isort:skip_file
+# """
 # pylint: disable=wrong-import-position,wrong-import-order
 
-import gevent.monkey
+# import gevent.monkey
 
-gevent.monkey.patch_all()
+# gevent.monkey.patch_all()
 
 import os
 
 from gunicorn.app.base import BaseApplication
 
-from app.app import app as application
-from app import otel
+from app.app import get_app
 from app.helpers.utils import get_logging_cfg
 from app.settings import GUNICORN_WORKER_TMP_DIR
 
 
 class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method
 
-    def __init__(self, app, options=None):  # pylint: disable=redefined-outer-name
+    def __init__(self, options=None):  # pylint: disable=redefined-outer-name
         self.options = options or {}
-        self.application = app
         super().__init__()
 
     def load_config(self):
@@ -42,14 +40,11 @@ class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method
             self.cfg.set(key.lower(), value)
 
     def load(self):
-        return self.application
+        return get_app()
 
 
 # We use the port 5000 as default, otherwise we set the HTTP_PORT env variable within the container.
 if __name__ == '__main__':
-    # OTEL
-    otel.setup_instrumentation()
-    otel.setup_opentelemetry()
 
     HTTP_PORT = str(os.environ.get('HTTP_PORT', "5000"))
     # Bind to 0.0.0.0 to let your app listen to all network interfaces.
@@ -65,4 +60,4 @@ if __name__ == '__main__':
             os.getenv('FORWARDED_PROTO_HEADER_NAME', 'X-Forwarded-Proto').upper(): 'https'
         }
     }
-    StandaloneApplication(application, options).run()
+    StandaloneApplication(options).run()

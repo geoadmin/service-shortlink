@@ -17,6 +17,11 @@ from app.settings import CACHE_CONTROL_4XX
 
 logger = logging.getLogger(__name__)
 
+
+def get_app():
+    Flask(__name__)
+
+
 # Standard Flask application initialization
 
 app = Flask(__name__)
