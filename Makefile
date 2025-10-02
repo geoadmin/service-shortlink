@@ -70,6 +70,7 @@ help:
 	@echo "- dockerpush         Build and push the project localy (with tag := $(DOCKER_IMG_LOCAL_TAG))"
 	@echo "- dockerrun          Run the project using the gunicorn WSGI server inside a container. (Exposed_port: $(HTTP_PORT)"
 	@echo "- shutdown           Stop the aforementioned container"
+	@echo "- otelrequirements   Get a list of available otel instrumentation libraries to add to the pipfile of this project"
 	@echo -e " \033[1mCLEANING TARGETS\033[0m "
 	@echo "- clean              Clean genereated files"
 	@echo "- clean_venv         Clean python venv"
@@ -178,6 +179,9 @@ clean: clean_venv clean_logs
 
 # Actual builds targets with dependencies
 
+.PHONY: otelrequirements
+otelrequirements:
+	edot-bootstrap --action=requirements
 
 $(LOGS_DIR):
 	mkdir -p -m=777 $(LOGS_DIR)

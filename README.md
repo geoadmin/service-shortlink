@@ -217,19 +217,41 @@ The service is configured by Environment Variable:
 
 ## OTEL
 
-This service uses [OTEL manual instrumentation](https://github.com/aws-observability/aws-otel-community/blob/master/sample-apps/python-manual-instrumentation-sample-app/app.py)
+[OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/) can be done in many different ways, from fully automated zero-code instrumentation (otel-operator) to purely manual instrumentation.
+Since we are kubernetes, the ideal solution would be to use the [otel-operator zero-code instrumentation](https://www.elastic.co/docs/solutions/observability/get-started/opentelemetry/use-cases/kubernetes/instrumenting-applications).
 
-Compared to auto-instrumentation, which aims to provide some out-of-the-box basic instrumentation due to monkey patching (which in case of this service caused weird exceptions),
-manual instrumentation provides full control and customization of OTEL capabilities.
+For reasons unclear (possibly related to how we do gevent monkey patching), zero-code auto-instrumentation does not work. Thus, we fall back to programmatic instrumentation as described in the [Python Opentelemetry Manual-Instrumentation Sample App](https://github.com/aws-observability/aws-otel-community/tree/master/sample-apps/python-manual-instrumentation-sample-app). We may revisit this once we figure out how to make auto-instrumentation work for this service.
 
-For simplicity reasons the basic otel instrumentation is done in the `otel.py` file. The setup functions are invoked in `wsgi.py`.
+To still use as less code as we can, we use the so called `OTEL programmatical instrumentation` approach. Unfortunately there are different understandings,
+levels of integration and examples of this approach. We use the [method described here](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/opentelemetry-instrumentation#programmatic-auto-instrumentation), since it provides the highest level of automatic instrumentation. I.e. we can use a initialize() method to automatically initialize all installed instrumentation libraries.
 
-This is the first implementation of OTEL with the goal to enable basic tracing. It may change in the future when we have more knowledge how to deal with instrumentation.
+Other examples like these:
+
+- [aws-otel-community](https://github.com/aws-observability/aws-otel-community/blob/master/sample-apps/python-manual-instrumentation-sample-app/app.py)
+- [OTEL examples](https://opentelemetry.io/docs/zero-code/python/example/#programmatically-instrumented-server)
+
+import the specific instrumentation libraries and initialize them with the instrument() method of each library.
+
+It can be expected that documentations will improve and consolidate over time, as well that zero-code instrumentaton can be used in the future.
+
+### Bootstrap
+
+As mentioned above, all available and desired instrumentation libraries need to be installed first, i.e. added to the pipfile.
+Well known libraries like flask, request and botocore could be added manually. To get a better overview and add broader instrumentation
+support, a otel bootstrap tool can be used to create a list of supported libraries for a given project.
+
+Usage:
+
+1. Make setup
+2. `make otelbootstrap` to get the list of libraries
+3. Add all or the desired ones to the Pipfile. Versions are set to "*" for the moment.
+
+### Environment variables
 
 The following env variables can be used to configure OTEL
 
 | Env Variable                  | Default                    | Description
-| OTEL_RESOURCE_ATTRIBUTES      |                            | A comma separated list of custom OTEL resource attributes, e.g. `foo=bar`. Should normally not be needed.
+| OTEL_RESOURCE_ATTRIBUTES      |                            | A comma separated list of custom OTEL resource attributes, Must contain at least the service-name `service.name=service-shortlink`
 | OTEL_EXPORTER_OTLP_ENDPOINT   | http://localhost:4317      | The OTEL Exporter endpoint, e.g. `opentelemetry-kube-stack-gateway-collector.opentelemetry-operator-system:4317`
 | OTEL_PYTHON_FLASK_EXCLUDED_URLS |                          | A comma separated list of url's to exclude, e.g. `checker` 
 | OTEL_EXPORTER_OTLP_INSECURE   | false                      | If exporter ssl certificates should be checked or not.
@@ -238,4 +260,3 @@ The following env variables can be used to configure OTEL
 | OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE  | | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers
 | K8S_POD_IP                    |                            | Required by OTEL collector k8sattributes processor to extract more k8s fieles from cluster metadata.
 | K8S_CONTAINER_NAME            |                            | Required since not retreavable by the OEL collector k8sattributes processor. 
-| SERVICE_NAME                  |                            | Required by OTEL collector k8sattributes processor to extract more k8s fieles from cluster metadata.
