@@ -16,7 +16,15 @@ import gevent.monkey
 
 gevent.monkey.patch_all()
 
+# Initialize OTEL.
 from opentelemetry.instrumentation.auto_instrumentation import initialize
+
+# Initialize should be called as early as possible, but at least before the app is imported
+# The order has a impact on how the libraries are instrumented. If called after app import,
+# e.g. the flask instrumentation has no effect. See:
+# https://github.com/open-telemetry/opentelemetry.io/blob/main/content/en/docs/zero-code/python/troubleshooting.md#use-programmatic-auto-instrumentation
+
+initialize()
 
 import os
 
@@ -31,9 +39,7 @@ from app.settings import GUNICORN_WORKER_TMP_DIR
 def post_fork(server, worker):
     server.log.info("Worker spawned (pid: %s)", worker.pid)
 
-    initialize()
-
-    # Setup OTEL providers
+    # Setup OTEL providers for this worker
     otel.setup_trace_provider(worker.pid)
 
 
