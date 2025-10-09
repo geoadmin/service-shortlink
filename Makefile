@@ -125,7 +125,7 @@ serve: clean_logs $(LOGS_DIR)
 
 .PHONY: gunicornserve
 gunicornserve: clean_logs $(LOGS_DIR)
-	ENV_FILE=.env.default LOGS_DIR=$(LOGS_DIR) ${PYTHON_CMD} wsgi.py
+	OTEL_SDK_DISABLED=true ENV_FILE=.env.default LOGS_DIR=$(LOGS_DIR) ${PYTHON_CMD} wsgi.py
 
 # Docker related functions.
 .PHONY: dockerlogin
