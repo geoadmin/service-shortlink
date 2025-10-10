@@ -13,8 +13,12 @@ PyYAML = "~=6.0"
 python-dotenv = "~=1.1"
 validators = "==0.35"
 nanoid = "~=2.0"
-opentelemetry-sdk = "*"
-opentelemetry-exporter-otlp = "*"
+opentelemetry-sdk = "~=1.37"
+opentelemetry-exporter-otlp = "~=1.37"
+opentelemetry-instrumentation = "*"
+
+# Specific OpenTelemetry instrumentation libraries used to instrument this app
+# Full list or a subset of libraries listed by 'make otelrequirements'
 opentelemetry-instrumentation-botocore = "*"
 opentelemetry-instrumentation-flask = "*"
 opentelemetry-instrumentation-requests = "*"
@@ -25,6 +29,7 @@ moto = "~=5.1"
 nose2 = "*"
 pylint = "*"
 pylint-flask = "*"
+elastic-opentelemetry = "*"
 
 [requires]
 python_version = "3.13"

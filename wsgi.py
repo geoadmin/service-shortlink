@@ -9,20 +9,40 @@
 
     isort:skip_file
 """
+
 # pylint: disable=wrong-import-position,wrong-import-order
 
 import gevent.monkey
 
 gevent.monkey.patch_all()
 
+# Initialize OTEL.
+# Initialize should be called as early as possible, but at least before the app is imported
+# The order has a impact on how the libraries are instrumented. If called after app import,
+# e.g. the flask instrumentation has no effect. See:
+# https://github.com/open-telemetry/opentelemetry.io/blob/main/content/en/docs/zero-code/python/troubleshooting.md#use-programmatic-auto-instrumentation
+
+from opentelemetry.instrumentation.auto_instrumentation import initialize
+
+initialize()
+
 import os
 
 from gunicorn.app.base import BaseApplication
 
 from app.app import app as application
-from app import otel
 from app.helpers.utils import get_logging_cfg
+from app.helpers.utils import strtobool
+from app.helpers import otel
 from app.settings import GUNICORN_WORKER_TMP_DIR
+
+
+def post_fork(server, worker):
+    server.log.info("Worker spawned (pid: %s)", worker.pid)
+
+    # Setup OTEL providers for this worker
+    if not strtobool(os.getenv("OTEL_SDK_DISABLED", "false")):
+        otel.setup_trace_provider(worker.pid)
 
 
 class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method
@@ -47,9 +67,6 @@ class StandaloneApplication(BaseApplication):  # pylint: disable=abstract-method
 
 # We use the port 5000 as default, otherwise we set the HTTP_PORT env variable within the container.
 if __name__ == '__main__':
-    # OTEL
-    otel.setup_instrumentation()
-    otel.setup_opentelemetry()
 
     HTTP_PORT = str(os.environ.get('HTTP_PORT', "5000"))
     # Bind to 0.0.0.0 to let your app listen to all network interfaces.
@@ -63,6 +80,7 @@ if __name__ == '__main__':
         'forwarded_allow_ips': os.getenv('FORWARED_ALLOW_IPS', '*'),
         'secure_scheme_headers': {
             os.getenv('FORWARDED_PROTO_HEADER_NAME', 'X-Forwarded-Proto').upper(): 'https'
-        }
+        },
+        'post_fork': post_fork,
     }
     StandaloneApplication(application, options).run()
