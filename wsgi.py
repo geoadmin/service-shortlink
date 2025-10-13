@@ -35,6 +35,7 @@ from app.helpers.utils import get_logging_cfg
 from app.helpers.utils import strtobool
 from app.helpers import otel
 from app.settings import GUNICORN_WORKER_TMP_DIR
+from app.settings import GUNICORN_KEEPALIVE
 
 
 def post_fork(server, worker):
@@ -75,6 +76,7 @@ if __name__ == '__main__':
         'worker_class': 'gevent',
         'workers': 2,  # scaling horizontaly is left to Kubernetes
         'worker_tmp_dir': GUNICORN_WORKER_TMP_DIR,
+        'keepalive': GUNICORN_KEEPALIVE,
         'timeout': 60,
         'logconfig_dict': get_logging_cfg(),
         'forwarded_allow_ips': os.getenv('FORWARED_ALLOW_IPS', '*'),
