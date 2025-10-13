@@ -261,3 +261,4 @@ The following env variables can be used to configure OTEL
 | OTEL_PYTHON_FLASK_EXCLUDED_URLS |                          | A comma separated list of url's to exclude, e.g. `checker` |
 | OTEL_RESOURCE_ATTRIBUTES      |                            | A comma separated list of custom OTEL resource attributes, Must contain at least the service-name `service.name=service-shortlink` |
 | OTEL_SDK_DISABLED             |                            | If set to "true", OTEL is disabled. See: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration |
+| GUNICORN_KEEPALIVE | `2` | The [`keepalive`](https://docs.gunicorn.org/en/stable/settings.html#keepalive) setting passed to gunicorn. |
