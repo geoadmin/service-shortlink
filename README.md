@@ -214,3 +214,51 @@ The service is configured by Environment Variable:
 | GUNICORN_WORKER_TMP_DIR       |                                           | This should be set to an tmpfs file system for better performance. See https://docs.gunicorn.org/en/stable/settings.html#worker-tmp-dir.                                         |
 | SHORT_ID_SIZE                 | `12`                                      | The size (number of characters) of the shortloink id's 
 | SHORT_ID_ALPHABET             | `0123456789abcdefghijklmnopqrstuvwxyz`    | The alphabet (characters) used by the shortlink. Allowed chars `[0-9][A-Z][a-z]-_`
+
+## OTEL
+
+[OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/) can be done in many different ways, from fully automated zero-code instrumentation (otel-operator) to purely manual instrumentation.
+Since we are kubernetes, the ideal solution would be to use the [otel-operator zero-code instrumentation](https://www.elastic.co/docs/solutions/observability/get-started/opentelemetry/use-cases/kubernetes/instrumenting-applications).
+
+For reasons unclear (possibly related to how we do gevent monkey patching), zero-code auto-instrumentation does not work. Thus, we fall back to programmatic instrumentation as described in the [Python Opentelemetry Manual-Instrumentation Sample App](https://github.com/aws-observability/aws-otel-community/tree/master/sample-apps/python-manual-instrumentation-sample-app). We may revisit this once we figure out how to make auto-instrumentation work for this service.
+
+To still use as less code as we can, we use the so called `OTEL programmatical instrumentation` approach. Unfortunately there are different understandings,
+levels of integration and examples of this approach. We use the [method described here](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/opentelemetry-instrumentation#programmatic-auto-instrumentation), since it provides the highest level of automatic instrumentation. I.e. we can use a initialize() method to automatically initialize all installed instrumentation libraries.
+
+Other examples like these:
+
+- [aws-otel-community](https://github.com/aws-observability/aws-otel-community/blob/master/sample-apps/python-manual-instrumentation-sample-app/app.py)
+- [OTEL examples](https://opentelemetry.io/docs/zero-code/python/example/#programmatically-instrumented-server)
+
+import the specific instrumentation libraries and initialize them with the instrument() method of each library.
+
+It can be expected that documentations will improve and consolidate over time, as well that zero-code instrumentaton can be used in the future.
+
+### Bootstrap
+
+As mentioned above, all available and desired instrumentation libraries need to be installed first, i.e. added to the pipfile.
+Well known libraries like flask, request and botocore could be added manually. To get a better overview and add broader instrumentation
+support, a otel bootstrap tool can be used to create a list of supported libraries for a given project.
+
+Usage:
+
+1. Make setup
+2. `make otelbootstrap` to get the list of libraries
+3. Add all or the desired ones to the Pipfile. Versions are set to "*" for the moment.
+
+### Environment variables
+
+The following env variables can be used to configure OTEL
+
+| Env Variable                  | Default                    | Description |
+| ----------------------------- | -------------------------- | ----------- |
+| OTEL_EXPERIMENTAL_RESOURCE_DETECTORS |                     | OTEL resource detectors, adding resource attributes to the OTEL output. e.g. `os,process` |
+| OTEL_EXPORTER_OTLP_ENDPOINT   | http://localhost:4317      | The OTEL Exporter endpoint, e.g. `opentelemetry-kube-stack-gateway-collector.opentelemetry-operator-system:4317` |
+| OTEL_EXPORTER_OTLP_HEADERS    |                            | A list of key=value headers added in outgoing data. https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#header-configuration |
+| OTEL_EXPORTER_OTLP_INSECURE   | false                      | If exporter ssl certificates should be checked or not. |
+| OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST   | | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers |
+| OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE  | | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers |
+| OTEL_PYTHON_FLASK_EXCLUDED_URLS |                          | A comma separated list of url's to exclude, e.g. `checker` |
+| OTEL_RESOURCE_ATTRIBUTES      |                            | A comma separated list of custom OTEL resource attributes, Must contain at least the service-name `service.name=service-shortlink` |
+| OTEL_SDK_DISABLED             |                            | If set to "true", OTEL is disabled. See: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration |
+| GUNICORN_KEEPALIVE | `2` | The [`keepalive`](https://docs.gunicorn.org/en/stable/settings.html#keepalive) setting passed to gunicorn. |

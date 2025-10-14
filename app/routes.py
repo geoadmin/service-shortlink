@@ -6,7 +6,7 @@ from flask import make_response
 from flask import redirect
 from flask import url_for
 
-from app import app
+from app.app import app
 from app.helpers.dynamo_db import get_db
 from app.helpers.utils import get_redirect_param
 from app.helpers.utils import get_url
