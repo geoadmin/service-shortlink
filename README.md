@@ -198,11 +198,11 @@ This service is to be delployed to the Kubernetes cluster once it is merged.
 
 The service is configured by Environment Variable:
 
-| Env Variable                | Default                    | Description                                                                                                                                                                      |
-| --------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Env Variable                  | Default                                   | Description                                                                                                                                                                      |
+| ----------------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | LOGGING_CFG                   | `logging-cfg-local.yml`                   | Logging configuration file to use.                                                                                                                                               |
 | AWS_ACCESS_KEY_ID             |                                           | Necessary credential to access dynamodb                                                                                                                                          |
-| AWS_SECRET_ACCESS_KEY         |                                           | AWS_SECRET_ACCESS_KEY                                                                                                                                                            |  |
+| AWS_SECRET_ACCESS_KEY         |                                           | AWS_SECRET_ACCESS_KEY                                                                                                                                                            |
 | AWS_DYNAMODB_TABLE_NAME       |                                           | The dynamodb table name                                                                                                                                                          |
 | AWS_DEFAULT_REGION            | eu-central-1                              | The AWS region in which the table is hosted.                                                                                                                                     |
 | AWS_ENDPOINT_URL              |                                           | The AWS endpoint url to use                                                                                                                                                      |
@@ -211,9 +211,10 @@ The service is configured by Environment Variable:
 | FORWARDED_PROTO_HEADER_NAME   | `X-Forwarded-Proto`                       | Sets gunicorn `secure_scheme_headers` parameter to `{FORWARDED_PROTO_HEADER_NAME: 'https'}`, see https://docs.gunicorn.org/en/stable/settings.html#secure-scheme-headers.        |
 | CACHE_CONTROL                 | `public, max-age=31536000`                | Cache Control header value of the `GET /<shortlink>` endpoint                                                                                                                    |
 | CACHE_CONTROL_4XX             | `public, max-age=3600`                    | Cache Control header for 4XX responses                                                                                                                                           |
+| GUNICORN_KEEPALIVE            | `2`                                       | The [`keepalive`](https://docs.gunicorn.org/en/stable/settings.html#keepalive) setting passed to gunicorn.                                                                       |
 | GUNICORN_WORKER_TMP_DIR       |                                           | This should be set to an tmpfs file system for better performance. See https://docs.gunicorn.org/en/stable/settings.html#worker-tmp-dir.                                         |
-| SHORT_ID_SIZE                 | `12`                                      | The size (number of characters) of the shortloink id's 
-| SHORT_ID_ALPHABET             | `0123456789abcdefghijklmnopqrstuvwxyz`    | The alphabet (characters) used by the shortlink. Allowed chars `[0-9][A-Z][a-z]-_`
+| SHORT_ID_SIZE                 | `12`                                      | The size (number of characters) of the shortloink id's                                                                                                                           |
+| SHORT_ID_ALPHABET             | `0123456789abcdefghijklmnopqrstuvwxyz`    | The alphabet (characters) used by the shortlink. Allowed chars `[0-9][A-Z][a-z]-_`                                                                                               |
 
 ## OTEL
 
@@ -250,15 +251,14 @@ Usage:
 
 The following env variables can be used to configure OTEL
 
-| Env Variable                  | Default                    | Description |
-| ----------------------------- | -------------------------- | ----------- |
-| OTEL_EXPERIMENTAL_RESOURCE_DETECTORS |                     | OTEL resource detectors, adding resource attributes to the OTEL output. e.g. `os,process` |
-| OTEL_EXPORTER_OTLP_ENDPOINT   | http://localhost:4317      | The OTEL Exporter endpoint, e.g. `opentelemetry-kube-stack-gateway-collector.opentelemetry-operator-system:4317` |
-| OTEL_EXPORTER_OTLP_HEADERS    |                            | A list of key=value headers added in outgoing data. https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#header-configuration |
-| OTEL_EXPORTER_OTLP_INSECURE   | false                      | If exporter ssl certificates should be checked or not. |
-| OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST   | | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers |
-| OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE  | | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers |
-| OTEL_PYTHON_FLASK_EXCLUDED_URLS |                          | A comma separated list of url's to exclude, e.g. `checker` |
-| OTEL_RESOURCE_ATTRIBUTES      |                            | A comma separated list of custom OTEL resource attributes, Must contain at least the service-name `service.name=service-shortlink` |
-| OTEL_SDK_DISABLED             |                            | If set to "true", OTEL is disabled. See: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration |
-| GUNICORN_KEEPALIVE | `2` | The [`keepalive`](https://docs.gunicorn.org/en/stable/settings.html#keepalive) setting passed to gunicorn. |
+| Env Variable                                              | Default                    | Description                                                                                                                                          |
+| --------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OTEL_EXPERIMENTAL_RESOURCE_DETECTORS                      |                            | OTEL resource detectors, adding resource attributes to the OTEL output. e.g. `os,process`                                                            |
+| OTEL_EXPORTER_OTLP_ENDPOINT                               | http://localhost:4317      | The OTEL Exporter endpoint, e.g. `opentelemetry-kube-stack-gateway-collector.opentelemetry-operator-system:4317`                                     |
+| OTEL_EXPORTER_OTLP_HEADERS                                |                            | A list of key=value headers added in outgoing data. https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#header-configuration    |
+| OTEL_EXPORTER_OTLP_INSECURE                               | false                      | If exporter ssl certificates should be checked or not.                                                                                               |
+| OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST  |                            | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers                                          |
+| OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE |                            | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers                                          |
+| OTEL_PYTHON_FLASK_EXCLUDED_URLS                           |                            | A comma separated list of url's to exclude, e.g. `checker`                                                                                           |
+| OTEL_RESOURCE_ATTRIBUTES                                  |                            | A comma separated list of custom OTEL resource attributes, Must contain at least the service-name `service.name=service-shortlink`                   |
+| OTEL_SDK_DISABLED                                         |                            | If set to "true", OTEL is disabled. See: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration |
