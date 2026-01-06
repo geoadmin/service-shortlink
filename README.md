@@ -243,9 +243,10 @@ support, a otel bootstrap tool can be used to create a list of supported librari
 
 Usage:
 
-1. Make setup
-2. `make otelbootstrap` to get the list of libraries
-3. Add all or the desired ones to the Pipfile. Versions are set to "*" for the moment.
+1. `edot-bootstrap --action=requirements` to get the list of libraries
+2. Add all or the desired ones to the Pipfile. Versions are set to "*" for the moment.
+
+Note: `edot-bootstrap` should be already installed via `infra-ansible-bgdi-dev`. If not, install it with `pipx install elastic-opentelemetry`.
 
 ### Environment variables
 

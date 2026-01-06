@@ -29,7 +29,6 @@ moto = "~=5.1"
 nose2 = "*"
 pylint = "*"
 pylint-flask = "*"
-elastic-opentelemetry = "*"
 
 [requires]
 python_version = "3.13"
