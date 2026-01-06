@@ -139,7 +139,7 @@ Is the command you're looking for.
 
 A curl example for testing the generation of shortlinks on the local db is:
 
-    curl -X POST -H "Content-Type: application/json" -H "Origin: http://localhost:8000" -d '{"url":"http://localhost:8000"}' http://localhost:5000
+    curl -X POST -H "Content-Type: application/json" -H "Origin: https://map.geo.admin.ch" -d '{"url":"https://map.geo.admin.ch"}' http://localhost:5000
 
 ### Docker helpers
 
@@ -262,3 +262,7 @@ The following env variables can be used to configure OTEL
 | OTEL_PYTHON_FLASK_EXCLUDED_URLS                           |                            | A comma separated list of url's to exclude, e.g. `checker`                                                                                           |
 | OTEL_RESOURCE_ATTRIBUTES                                  |                            | A comma separated list of custom OTEL resource attributes, Must contain at least the service-name `service.name=service-shortlink`                   |
 | OTEL_SDK_DISABLED                                         |                            | If set to "true", OTEL is disabled. See: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration |
+
+### Local Telemetry
+
+Local telemetry can be tested by using one of the serve commands that use gunicorn, either `make gunicornserve`  or `make dockerrun`, and visiting the Zipkin dashboard at [http://localhost:9411](http://localhost:9411).
