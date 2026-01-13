@@ -21,7 +21,6 @@ opentelemetry-instrumentation = "*"
 # Full list or a subset of libraries listed by 'edot-bootstrap --action=requirements'
 opentelemetry-instrumentation-botocore = "*"
 opentelemetry-instrumentation-flask = "*"
-opentelemetry-instrumentation-requests = "*"
 opentelemetry-instrumentation-logging = "*"
 
 [dev-packages]
