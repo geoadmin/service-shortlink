@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 boto3 = "~=1.40"
-logging-utilities = "~=5.1"
+logging-utilities = "~=5.3"
 Flask = "~=3.1"
 gevent = "~=25.8"
 gunicorn = "~=23.0"
@@ -18,10 +18,11 @@ opentelemetry-exporter-otlp = "~=1.37"
 opentelemetry-instrumentation = "*"
 
 # Specific OpenTelemetry instrumentation libraries used to instrument this app
-# Full list or a subset of libraries listed by 'make otelrequirements'
+# Full list or a subset of libraries listed by 'edot-bootstrap --action=requirements'
 opentelemetry-instrumentation-botocore = "*"
 opentelemetry-instrumentation-flask = "*"
 opentelemetry-instrumentation-requests = "*"
+opentelemetry-instrumentation-logging = "*"
 
 [dev-packages]
 yapf = "~=0.43"
