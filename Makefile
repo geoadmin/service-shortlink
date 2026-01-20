@@ -28,6 +28,7 @@ YAPF_CMD := $(PIPENV_RUN) yapf
 ISORT_CMD := $(PIPENV_RUN) isort
 NOSE_CMD := $(PIPENV_RUN) nose2
 PYLINT_CMD := $(PIPENV_RUN) pylint
+EDOT_BOOTSTRAP_CMD := $(PIPENV_RUN) edot-bootstrap
 
 # AWS variables
 AWS_DEFAULT_REGION = eu-central-1
@@ -70,7 +71,6 @@ help:
 	@echo "- dockerpush         Build and push the project localy (with tag := $(DOCKER_IMG_LOCAL_TAG))"
 	@echo "- dockerrun          Run the project using the gunicorn WSGI server inside a container. (Exposed_port: $(HTTP_PORT)"
 	@echo "- shutdown           Stop the aforementioned container"
-	@echo "- otelrequirements   Get a list of available otel instrumentation libraries to add to the pipfile of this project"
 	@echo -e " \033[1mCLEANING TARGETS\033[0m "
 	@echo "- clean              Clean genereated files"
 	@echo "- clean_venv         Clean python venv"
@@ -125,7 +125,7 @@ serve: clean_logs $(LOGS_DIR)
 
 .PHONY: gunicornserve
 gunicornserve: clean_logs $(LOGS_DIR)
-	OTEL_SDK_DISABLED=true ENV_FILE=.env.default LOGS_DIR=$(LOGS_DIR) ${PYTHON_CMD} wsgi.py
+	ENV_FILE=.env.default LOGS_DIR=$(LOGS_DIR) ${PYTHON_CMD} wsgi.py
 
 # Docker related functions.
 .PHONY: dockerlogin
@@ -178,10 +178,6 @@ clean: clean_venv clean_logs
 	rm -rf $(TEST_REPORT_DIR)
 
 # Actual builds targets with dependencies
-
-.PHONY: otelrequirements
-otelrequirements:
-	edot-bootstrap --action=requirements
 
 $(LOGS_DIR):
 	mkdir -p -m=777 $(LOGS_DIR)
