@@ -139,7 +139,7 @@ Is the command you're looking for.
 
 A curl example for testing the generation of shortlinks on the local db is:
 
-    curl -X POST -H "Content-Type: application/json" -H "Origin: http://localhost:8000" -d '{"url":"http://localhost:8000"}' http://localhost:5000
+    curl -X POST -H "Content-Type: application/json" -H "Origin: https://map.geo.admin.ch" -d '{"url":"https://map.geo.admin.ch"}' http://localhost:5000
 
 ### Docker helpers
 
@@ -219,33 +219,7 @@ The service is configured by Environment Variable:
 ## OTEL
 
 [OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/) can be done in many different ways, from fully automated zero-code instrumentation (otel-operator) to purely manual instrumentation.
-Since we are kubernetes, the ideal solution would be to use the [otel-operator zero-code instrumentation](https://www.elastic.co/docs/solutions/observability/get-started/opentelemetry/use-cases/kubernetes/instrumenting-applications).
-
-For reasons unclear (possibly related to how we do gevent monkey patching), zero-code auto-instrumentation does not work. Thus, we fall back to programmatic instrumentation as described in the [Python Opentelemetry Manual-Instrumentation Sample App](https://github.com/aws-observability/aws-otel-community/tree/master/sample-apps/python-manual-instrumentation-sample-app). We may revisit this once we figure out how to make auto-instrumentation work for this service.
-
-To still use as less code as we can, we use the so called `OTEL programmatical instrumentation` approach. Unfortunately there are different understandings,
-levels of integration and examples of this approach. We use the [method described here](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/opentelemetry-instrumentation#programmatic-auto-instrumentation), since it provides the highest level of automatic instrumentation. I.e. we can use a initialize() method to automatically initialize all installed instrumentation libraries.
-
-Other examples like these:
-
-- [aws-otel-community](https://github.com/aws-observability/aws-otel-community/blob/master/sample-apps/python-manual-instrumentation-sample-app/app.py)
-- [OTEL examples](https://opentelemetry.io/docs/zero-code/python/example/#programmatically-instrumented-server)
-
-import the specific instrumentation libraries and initialize them with the instrument() method of each library.
-
-It can be expected that documentations will improve and consolidate over time, as well that zero-code instrumentaton can be used in the future.
-
-### Bootstrap
-
-As mentioned above, all available and desired instrumentation libraries need to be installed first, i.e. added to the pipfile.
-Well known libraries like flask, request and botocore could be added manually. To get a better overview and add broader instrumentation
-support, a otel bootstrap tool can be used to create a list of supported libraries for a given project.
-
-Usage:
-
-1. Make setup
-2. `make otelbootstrap` to get the list of libraries
-3. Add all or the desired ones to the Pipfile. Versions are set to "*" for the moment.
+We use the so called `OTEL programmatical instrumentation` approach where we import the specific instrumentation libraries and initialize them with the instrument() method of each library.
 
 ### Environment variables
 
@@ -253,6 +227,10 @@ The following env variables can be used to configure OTEL
 
 | Env Variable                                              | Default                    | Description                                                                                                                                          |
 | --------------------------------------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OTEL_SDK_DISABLED                                         | false                      | If set to "true", OTEL is disabled. See: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration |
+| OTEL_ENABLE_BOTO                                          | false                      | If opentelemetry-instrumentation-botocore should be enabled or not.                                                                                  |
+| OTEL_ENABLE_FLASK                                         | false                      | If opentelemetry-instrumentation-django should be enabled or not.                                                                                    |
+| OTEL_ENABLE_LOGGING                                       | false                      | If opentelemetry-instrumentation-logging should be enabled or not.                                                                                   |
 | OTEL_EXPERIMENTAL_RESOURCE_DETECTORS                      |                            | OTEL resource detectors, adding resource attributes to the OTEL output. e.g. `os,process`                                                            |
 | OTEL_EXPORTER_OTLP_ENDPOINT                               | http://localhost:4317      | The OTEL Exporter endpoint, e.g. `opentelemetry-kube-stack-gateway-collector.opentelemetry-operator-system:4317`                                     |
 | OTEL_EXPORTER_OTLP_HEADERS                                |                            | A list of key=value headers added in outgoing data. https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#header-configuration    |
@@ -261,4 +239,36 @@ The following env variables can be used to configure OTEL
 | OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_RESPONSE |                            | A comma separated list of request headers added in outgoing data. Regex supported. Use '.*' for all headers                                          |
 | OTEL_PYTHON_FLASK_EXCLUDED_URLS                           |                            | A comma separated list of url's to exclude, e.g. `checker`                                                                                           |
 | OTEL_RESOURCE_ATTRIBUTES                                  |                            | A comma separated list of custom OTEL resource attributes, Must contain at least the service-name `service.name=service-shortlink`                   |
-| OTEL_SDK_DISABLED                                         |                            | If set to "true", OTEL is disabled. See: https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#general-sdk-configuration |
+| OTEL_TRACES_SAMPLER                                       | parentbased_always_on      | Sampler to be used, see https://opentelemetry-python.readthedocs.io/en/latest/sdk/trace.sampling.html#module-opentelemetry.sdk.trace.sampling.       |
+| OTEL_TRACES_SAMPLER_ARG                                   |                            | Optional additional arguments for sampler.                                                                                                           |
+| OTEL_TRACES_SAMPLER                                       | parentbased_always_on      | Sampler to be used, see https://opentelemetry-python.readthedocs.io/en/latest/sdk/trace.sampling.html#module-opentelemetry.sdk.trace.sampling.       |
+| OTEL_TRACES_SAMPLER_ARG                                   |                            | Optional additional arguments for sampler.                                                                                                           |
+
+### Adding a New Instrumentation
+
+1. Use `edot-bootstrap --action=requirements` to get a list of possible instrumentation libraries
+2. Add all or the desired ones to the Pipfile.
+3. Add the initalization to [otel.py](app/helpers/otel.py) together with a feature flag
+
+Note: `edot-bootstrap` should be already installed via `infra-ansible-bgdi-dev`. If not, install it with `pipx install elastic-opentelemetry`.
+
+### Log Correlation
+
+The OpenTelemetry logging integration automatically injects tracing context into log statements. The following keys are injected into log record objects:
+
+- otelSpanID
+- otelTraceID
+- otelTraceSampled
+
+Note that although otelServiceName is injected, it will be empty. This is because the logging integration tries to read the service name from the trace provider, but our trace provider instance does not contain this resource attribute.
+
+### Sampling
+
+The python SDK supports ratio based [head sampling](https://opentelemetry.io/docs/concepts/sampling/#head-sampling). To enable, set
+
+- OTEL_TRACES_SAMPLER=parentbased_traceidratio|traceidratio
+- and OTEL_TRACES_SAMPLER_ARG=[0.0,1.0]
+
+### Local Telemetry
+
+Local telemetry can be tested by using one of the serve commands that use gunicorn, either `make gunicornserve`  or `make dockerrun`, and visiting the Zipkin dashboard at [http://localhost:9411](http://localhost:9411).
