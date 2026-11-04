@@ -28,7 +28,6 @@ YAPF_CMD := $(PIPENV_RUN) yapf
 ISORT_CMD := $(PIPENV_RUN) isort
 NOSE_CMD := $(PIPENV_RUN) nose2
 PYLINT_CMD := $(PIPENV_RUN) pylint
-EDOT_BOOTSTRAP_CMD := $(PIPENV_RUN) edot-bootstrap
 
 # AWS variables
 AWS_DEFAULT_REGION = eu-central-1
